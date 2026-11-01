@@ -1,0 +1,3598 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <link rel="icon" href="favicon0.png" type="image/png">
+    <meta name="google-site-verification" content="kLCS6z8Lb3jZLTBq6-TJDJSFEFtRTSW3B3IMBYlx5wo" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cephede tek başına V1.3</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #1a1a1a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        #top-bar {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 8px 16px;
+            border-radius: 12px;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            flex-wrap: wrap;
+            justify-content: center;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        #top-bar.hidden-panel {
+            display: none !important;
+        }
+        #panel-toggle-strip {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #ffeb3b;
+            padding: 4px 24px;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-top: none;
+            cursor: pointer;
+            z-index: 11;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            display: none;
+        }
+        #panel-toggle-strip:hover {
+            background: rgba(33, 150, 243, 0.9);
+            color: #fff;
+        }
+        .stats {
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .weapon-btn, .ctrl-btn {
+            background: #444;
+            color: #fff;
+            border: 2px solid #666;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .weapon-btn.active {
+            background: #2196F3;
+            border-color: #fff;
+            box-shadow: 0 0 8px #2196F3;
+        }
+        .weapon-btn.locked {
+            background: #222;
+            color: #888;
+            border-color: #444;
+        }
+        .ctrl-btn:hover {
+            background: #555;
+        }
+        .ctrl-btn.active-state {
+            background: #ff9800;
+            border-color: #fff;
+        }
+        #start-screen, #pause-screen, #wave-prompt-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+        #pause-screen, #wave-prompt-screen {
+            display: none;
+            z-index: 25;
+        }
+        #start-screen h1, #pause-screen h1, #wave-prompt-screen h1 {
+            font-size: 40px;
+            margin-bottom: 10px;
+            color: #ffeb3b;
+            text-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        .score-info {
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .mode-container, .map-container, .wave-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        .mode-btn, .map-btn {
+            background: #333;
+            color: #aaa;
+            border: 2px solid #555;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-btn.selected, .map-btn.selected {
+            background: #e91e63;
+            color: #fff;
+            border-color: #fff;
+            box-shadow: 0 0 12px rgba(233, 30, 99, 0.6);
+        }
+        .wave-input-box {
+            padding: 8px 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 2px solid #555;
+            background: #222;
+            color: #fff;
+            width: 80px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .play-btn {
+            padding: 15px 40px;
+            font-size: 22px;
+            font-weight: bold;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #2E7D32, 0 10px 20px rgba(0,0,0,0.4);
+            transition: transform 0.1s;
+        }
+        .play-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #2E7D32;
+        }
+        .prompt-btn-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .prompt-btn {
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            border: none;
+        }
+        #btn-tamam { background: #2196F3; color: white; }
+        #btn-devam { background: #4CAF50; color: white; }
+
+        canvas {
+            display: block;
+            background-color: #1b361c;
+        }
+        #joystick-container {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            cursor: pointer;
+        }
+        #joystick-knob {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+        #fire-btn {
+            position: absolute;
+            bottom: 50px;
+            right: 40px;
+            width: 90px;
+            height: 90px;
+            background: rgba(255, 82, 82, 0.8);
+            border: 3px solid #fff;
+            border-radius: 50%;
+            color: #fff;
+            font-weight: bold;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(255, 82, 82, 0.5);
+            z-index: 10;
+            cursor: pointer;
+        }
+        #fire-btn:active {
+            background: rgba(255, 82, 82, 1);
+            transform: scale(0.95);
+        }
+        #grenade-joystick-container {
+            position: absolute;
+            bottom: 160px;
+            right: 45px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 152, 0, 0.2);
+            border: 2px solid rgba(255, 152, 0, 0.4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            cursor: pointer;
+        }
+        #grenade-joystick-knob {
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 152, 0, 0.8);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+        #scope-btn {
+            position: absolute;
+            bottom: 180px;
+            left: 70px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(33, 150, 243, 0.3);
+            border: 2px solid rgba(100, 181, 246, 0.75);
+            color: rgba(255, 255, 255, 0.92);
+            font-weight: bold;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.35);
+            transition: opacity 0.15s, background 0.15s;
+        }
+        #scope-btn.on {
+            background: rgba(33, 150, 243, 0.65);
+        }
+        #mp-code-input {
+            user-select: text;
+            -webkit-user-select: text;
+            touch-action: auto;
+        }
+
+
+        .menu-page { display: none; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 70px; max-width: 94%; }
+        .menu-page.active { display: flex; }
+        .menu-big {
+            width: min(340px, 82vw);
+            padding: 14px 18px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            background: #333;
+        }
+        .menu-big:hover { filter: brightness(1.12); }
+        .menu-big.mb-sp { background: linear-gradient(#ef5350, #c62828); }
+        .menu-big.mb-mp { background: linear-gradient(#42a5f5, #1565c0); }
+        .menu-big.mb-char { background: linear-gradient(#66bb6a, #2e7d32); }
+        .menu-big.mb-upg { background: linear-gradient(#ffb300, #ff8f00); color: #1a1a1a; }
+        .menu-big.mb-set { background: linear-gradient(#90a4ae, #546e7a); }
+        .menu-big.mode-btn, .menu-big.map-btn { color: #aaa; border-color: #555; }
+        .menu-big.mode-btn.selected, .menu-big.map-btn.selected { color: #fff; border-color: #fff; }
+        #map-container { flex-direction: column; margin-bottom: 0; }
+        .nav-corner {
+            position: absolute;
+            bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+            display: none;
+            gap: 10px;
+            z-index: 22;
+        }
+        #nav-left { left: 14px; }
+        #nav-right { right: 14px; }
+        .nav-btn {
+            padding: 12px 24px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(#78909c, #455a64);
+            border: 2px solid #fff;
+            border-radius: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        #nav-next-btn { background: linear-gradient(#66bb6a, #2e7d32); }
+        #nav-right .play-btn { padding: 12px 26px; font-size: 18px; }
+        .corner-btn {
+            position: absolute;
+            top: 12px;
+            z-index: 22;
+            background: linear-gradient(#ffb300, #ff8f00);
+            color: #1a1a1a;
+            border: 2px solid #fff;
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .corner-btn:hover { filter: brightness(1.12); }
+        #btn-open-set { left: 50%; transform: translateX(-50%); background: linear-gradient(#90a4ae, #546e7a); color: #fff; }
+        #btn-open-upg { left: 12px; }
+        #btn-open-char { right: 12px; background: linear-gradient(#66bb6a, #2e7d32); color: #fff; }
+        .sub-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(8, 8, 8, 0.96);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 14px 30px;
+            z-index: 30;
+            overflow-y: auto;
+        }
+        .sub-screen, .sub-screen * { touch-action: auto; }
+        .sub-screen button { touch-action: manipulation; }
+        .sub-head {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+        .back-btn {
+            background: #d32f2f;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .back-btn:hover { background: #e53935; }
+        .sub-title { font-size: 26px; font-weight: bold; color: #ffeb3b; margin: 0; }
+        .sub-gold { font-size: 18px; font-weight: bold; color: #ffd700; }
+        .card-grid {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            justify-content: center;
+        }
+        .char-card, .upg-card {
+            background: #1f1f1f;
+            border: 2px solid #444;
+            border-radius: 14px;
+            padding: 14px;
+            text-align: center;
+        }
+        .char-card { width: 250px; }
+        .char-card.selected { border-color: #00e676; box-shadow: 0 0 14px rgba(0,230,118,0.45); }
+        .upg-card { width: 100%; max-width: 440px; text-align: left; }
+        .char-figure {
+            width: 54px; height: 100px;
+            margin: 4px auto 8px;
+            position: relative;
+        }
+        .char-figure .head { position:absolute; left:15px; top:0; width:24px; height:24px; border-radius:50%; background:#f1c9a0; }
+        .char-figure .cap { position:absolute; left:14px; top:-2px; width:26px; height:13px; border-radius:13px 13px 0 0; background:#0d47a1; }
+        .char-figure .body { position:absolute; left:9px; top:26px; width:36px; height:42px; border-radius:6px; }
+        .char-figure .arm { position:absolute; top:28px; width:9px; height:34px; border-radius:4px; }
+        .char-figure .leg { position:absolute; top:68px; width:13px; height:32px; background:#252a31; border-radius:3px; }
+        .char-name { font-size: 22px; font-weight: bold; color: #fff; margin-bottom: 6px; }
+        .char-stat { font-size: 14px; color: #bbb; margin: 2px 0; }
+        .char-stat b { color: #76ff03; }
+        .act-btn {
+            margin-top: 10px;
+            background: #2196F3;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 10px;
+            padding: 9px 14px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .act-btn.buy { background: #ff9800; color: #1a1a1a; }
+        .act-btn.on { background: #00c853; }
+        .act-btn:disabled, .act-btn.dis { background: #3a3a3a; color: #888; border-color: #555; cursor: not-allowed; }
+        .upg-title { font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 8px; }
+        .upg-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 0; border-top: 1px solid #333; flex-wrap: wrap; }
+        .upg-row:first-of-type { border-top: none; }
+        .upg-info { font-size: 14px; color: #ccc; flex: 1; min-width: 150px; }
+        .upg-info b { color: #ffeb3b; }
+        .pips { display:flex; gap:3px; margin-top:5px; }
+        .pip { width: 14px; height: 8px; border-radius: 2px; background: #3a3a3a; }
+        .pip.on { background: #00e676; }
+        .upg-row .act-btn { margin-top: 0; padding: 7px 12px; font-size: 14px; }
+        #mp-scoreboard {
+            position: fixed;
+            left: 12px;
+            top: 62px;
+            min-width: 190px;
+            background: rgba(0,0,0,0.72);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 10px;
+            padding: 8px 12px;
+            z-index: 21;
+            display: none;
+            font-size: 14px;
+            pointer-events: none;
+        }
+        #mp-scoreboard .sb-title { color: #ffeb3b; font-weight: bold; font-size: 13px; margin-bottom: 4px; letter-spacing: 1px; }
+        #mp-scoreboard .sb-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
+        #mp-scoreboard .sb-row.me { color: #76ff03; }
+        #mp-scoreboard .sb-gold { color: #ffd700; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="top-bar">
+    <div class="stats">
+        <span>Can: <span id="health" style="color:#76ff03;">100</span></span>
+        <span class="sp-only">Skor: <span id="score" style="color:#ffeb3b;">0</span></span>
+        <span class="sp-only">En Yüksek: <span id="highScore" style="color:#ff9800;">0</span></span>
+        <span class="sp-only">Altın: 🪙<span id="gold" style="color:#ffd700;">0</span></span>
+        <span id="opp-stat" style="display:none; color:#ff7043;">Rakip: <span id="opp-hp">100</span></span>
+        <span id="wave-stat" style="display:none; color:#00e676;">Dalga: <span id="current-wave-display">1</span>/<span id="total-wave-display">1</span></span>
+    </div>
+    <div style="border-left: 2px solid #555; height: 25px;"></div>
+    <button class="weapon-btn active" id="btn-single" onclick="selectWeapon('single')">Glock</button>
+    <button class="weapon-btn locked" id="btn-double" onclick="selectWeapon('double')">Desert Eagle (30🪙)</button>
+    <button class="weapon-btn locked" id="btn-auto" onclick="selectWeapon('auto')">M-60 (50🪙)</button>
+    <button class="weapon-btn locked" id="btn-minigun" onclick="selectWeapon('minigun')">Minigun (100🪙)</button>
+    <button class="weapon-btn locked" id="btn-grenade" onclick="selectWeapon('grenade')">Bomba (70🪙)</button>
+    <button class="weapon-btn locked" id="btn-rpg" onclick="selectWeapon('rpg')">RPG (250🪙)</button>
+    <div style="border-left: 2px solid #555; height: 25px;"></div>
+    <button class="ctrl-btn" id="btn-pause" onclick="togglePause()">Durdur</button>
+    <button class="ctrl-btn" id="btn-leave" onclick="mpLeave()" style="display:none;background:#b71c1c;">Ayrıl</button>
+    <button class="ctrl-btn" id="btn-mute" onclick="toggleMute()">Ses: Açık</button>
+    <button class="ctrl-btn" id="btn-view" onclick="toggleView()">Kamera: 1. Şahıs</button>
+    <button class="ctrl-btn" id="btn-fs" onclick="toggleFullScreen()">Tam Ekran</button>
+    <button class="ctrl-btn" id="btn-hide-panel" onclick="toggleTopPanel(true)" style="background:#d32f2f;">PG</button>
+</div>
+
+<div id="panel-toggle-strip" onclick="toggleTopPanel(false)">▲ Paneli Göster</div>
+
+<div id="start-screen">
+    <h1 id="screen-title">Cephede tek başına V1.3</h1>
+    <div class="score-info" id="screen-score">En Yüksek Skor: <span id="start-high-score">0</span></div>
+
+    <div class="menu-page active" id="page-main">
+        <button class="menu-big mb-sp" onclick="menuOpenSP()">🎯 Tek Oyunculu</button>
+        <button class="menu-big mb-mp" onclick="menuOpenMP()">🌐 Çok Oyunculu</button>
+        <button class="menu-big mb-char" onclick="openSubMenu('char-screen')">🧑 Karakterler</button>
+        <button class="menu-big mb-upg" onclick="openSubMenu('upg-screen')">🔧 Yükseltmeler</button>
+        <button class="menu-big mb-set" onclick="openSubMenu('set-screen')">⚙ Ayarlar</button>
+        <div style="font-size:13px;color:#bbb;margin-bottom:12px;text-align:center;max-width:90%;line-height:1.5">1. şahıs: fareyle bak (ekrana tıkla) • WASD / ok tuşları yürü • sol tık ateş • C kamera değiştir • Fare Tekerleği: Silah Değiştir • Sağ tık (basılı tut) / N: nişangah (1. şahıs; Glock, Desert Eagle, M-60) • P duraklat<br>Dokunmatik: boş alanı sürükleyerek bak</div>
+    </div>
+
+    <div class="menu-page" id="page-sp">
+        <button class="menu-big mode-btn selected" id="mode-normal" onclick="setGameMode('normal')">Normal Mod</button>
+        <button class="menu-big mode-btn" id="mode-hard" onclick="setGameMode('hard')">🔥 Zor Mod (Sadece Boss)</button>
+        <button class="menu-big mode-btn" id="mode-ultra" onclick="setGameMode('ultra')">💀 Ultra Zor Mod (Siyah Mega Boss)</button>
+        <button class="menu-big mode-btn" id="mode-wave" onclick="setGameMode('wave')">🌊 Dalga Modu</button>
+        <div class="wave-container" id="wave-settings-box" style="display:none;">
+            <span style="font-weight:bold; font-size:16px; color:#ffeb3b;">Toplam Dalga Sayısı:</span>
+            <input type="number" id="wave-input" class="wave-input-box" value="3" min="1" max="20">
+        </div>
+    </div>
+
+    <div class="menu-page" id="page-map">
+        <div class="map-container" id="map-container">
+            <button class="menu-big map-btn selected" id="map-park" onclick="setGameMap('park')">Kentleşmiş Park</button>
+            <button class="menu-big map-btn" id="map-kanal" onclick="setGameMap('kanal')">Kanalizasyon</button>
+            <button class="menu-big map-btn" id="map-sehir" onclick="setGameMap('sehir')">Şehir İçi</button>
+        </div>
+    </div>
+
+    <div class="menu-page" id="page-mp">
+    <div id="mp-panel" style="display:none; flex-direction:column; align-items:center; gap:10px; margin-bottom:15px; max-width:92%;">
+        <div id="mp-menu" class="mode-container" style="margin-bottom:0;">
+            <button class="mode-btn" onclick="mpHost()">🏠 Oda Kur</button>
+            <span style="color:#888; font-weight:bold;">veya</span>
+            <input type="text" id="mp-code-input" class="wave-input-box" style="width:120px; text-transform:uppercase; letter-spacing:3px;" maxlength="5" placeholder="KOD" autocomplete="off">
+            <button class="mode-btn" onclick="mpJoin()">🔗 Katıl</button>
+        </div>
+        <div id="mp-room" style="display:none; font-size:18px; font-weight:bold; color:#ffeb3b;">Oda kodu: <span id="mp-room-code" style="font-size:26px; letter-spacing:4px; color:#00e676;"></span></div>
+        <div id="mp-status" style="font-size:14px; color:#bbb; text-align:center; min-height:18px; max-width:420px;"></div>
+        <div id="mp-actions" class="mode-container" style="display:none; margin-bottom:0;">
+            <button class="mode-btn selected" id="mp-rematch-btn" onclick="mpHostStartMatch()">▶ Yeni Maç (Rastgele Harita)</button>
+            <button class="mode-btn" id="mp-leave-btn" onclick="mpLeave()">✖ Ayrıl</button>
+        </div>
+    </div>
+    </div>
+
+    <div id="nav-left" class="nav-corner"><button class="nav-btn" id="nav-back-btn" onclick="menuBack()">← Geri</button></div>
+    <div id="nav-right" class="nav-corner">
+        <button class="nav-btn" id="nav-next-btn" onclick="menuNext()">İleri →</button>
+        <button class="play-btn" id="start-btn" onclick="startGame()">OYUNU BAŞLAT</button>
+    </div>
+</div>
+
+<div id="pause-screen">
+    <h1>OYUN DURAKLATILDI</h1>
+    <button class="play-btn" onclick="togglePause()">DEVAM ET</button>
+</div>
+
+<div id="wave-prompt-screen">
+    <h1 id="prompt-title">DALGA TAMAMLANDI!</h1>
+    <div class="score-info" id="prompt-msg" style="font-size: 20px; color: #ffeb3b;">Tamam mı ? Devam mı ?</div>
+    <div class="prompt-btn-group">
+        <button class="prompt-btn" id="btn-tamam" onclick="onWavePromptChoice('tamam')">Tamam</button>
+        <button class="prompt-btn" id="btn-devam" onclick="onWavePromptChoice('devam')">Devam</button>
+    </div>
+</div>
+
+<div id="char-screen" class="sub-screen">
+    <div class="sub-head">
+        <button class="back-btn" onclick="closeSubMenus()">← Ana Menüye Dön</button>
+        <h2 class="sub-title">Karakterler</h2>
+        <div class="sub-gold">Altın: 🪙<span class="gold-live">0</span></div>
+    </div>
+    <div class="card-grid" id="char-list"></div>
+</div>
+
+<div id="upg-screen" class="sub-screen">
+    <div class="sub-head">
+        <button class="back-btn" onclick="closeSubMenus()">← Ana Menüye Dön</button>
+        <h2 class="sub-title">Silah Yükseltmeleri</h2>
+        <div class="sub-gold">Altın: 🪙<span class="gold-live">0</span></div>
+    </div>
+    <div style="font-size:13px;color:#aaa;margin-bottom:12px;text-align:center;max-width:900px;">Her yükseltme en fazla 10 seviye • seviye başına 50🪙 • hasar yükseltmeleri tek oyunculu modda geçerlidir</div>
+    <div class="card-grid" id="upg-list"></div>
+</div>
+
+<div id="set-screen" class="sub-screen">
+    <div class="sub-head">
+        <button class="back-btn" onclick="closeSubMenus()">← Ana Menüye Dön</button>
+        <h2 class="sub-title">Ayarlar</h2>
+        <div class="sub-gold">Altın: 🪙<span class="gold-live">0</span></div>
+    </div>
+    <div class="card-grid">
+        <div class="upg-card">
+            <div class="upg-title">Hesabı Sıfırla</div>
+            <div class="upg-info" style="margin-bottom:10px;">Altın, açılan silahlar ve karakterler, silah yükseltmeleri ve en yüksek skor silinir. Bu işlem geri alınamaz.</div>
+            <button class="act-btn buy" id="reset-ask-btn" onclick="resetAskToggle(true)">Hesabı Sıfırla</button>
+            <div id="reset-confirm" style="display:none;margin-top:10px;">
+                <div style="color:#ff8a80;font-weight:bold;margin-bottom:6px;">Emin misin? Tüm ilerleme silinecek.</div>
+                <button class="act-btn" style="background:#d32f2f;margin-top:0;" onclick="resetAccount()">Evet, sıfırla</button>
+                <button class="act-btn" style="background:#555;margin-top:0;margin-left:8px;" onclick="resetAskToggle(false)">Vazgeç</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="mp-scoreboard"></div>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="joystick-container">
+    <div id="joystick-knob"></div>
+</div>
+<div id="fire-btn">ATEŞ</div>
+<div id="scope-btn">N</div>
+<div id="grenade-joystick-container" style="display:none;">
+    <div id="grenade-joystick-knob"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js" onerror="var s=document.createElement('script');s.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';document.head.appendChild(s);"></script>
+<script>
+if (typeof THREE === 'undefined') {
+    document.getElementById('start-screen').insertAdjacentHTML('afterbegin',
+        '<div style="background:#b71c1c;color:#fff;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-weight:bold;max-width:90%;text-align:center">3D motoru (Three.js) yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.</div>');
+    throw new Error('Three.js yüklenemedi');
+}
+
+function toggleTopPanel(hide) {
+    const topBar = document.getElementById('top-bar');
+    const toggleStrip = document.getElementById('panel-toggle-strip');
+    if (hide) {
+        topBar.classList.add('hidden-panel');
+        toggleStrip.style.display = 'block';
+    } else {
+        topBar.classList.remove('hidden-panel');
+        toggleStrip.style.display = 'none';
+    }
+}
+
+const canvas = document.getElementById("gameCanvas");
+
+const healthEl = document.getElementById("health");
+const scoreEl = document.getElementById("score");
+const highScoreEl = document.getElementById("highScore");
+const goldEl = document.getElementById("gold");
+
+const startScreen = document.getElementById("start-screen");
+const pauseScreen = document.getElementById("pause-screen");
+const wavePromptScreen = document.getElementById("wave-prompt-screen");
+const screenTitle = document.getElementById("screen-title");
+const screenScore = document.getElementById("screen-score");
+const startHighScoreEl = document.getElementById("start-high-score");
+const startBtn = document.getElementById("start-btn");
+
+let highScore = localStorage.getItem("cephedeHighScore") ? parseInt(localStorage.getItem("cephedeHighScore")) : 0;
+let gold = localStorage.getItem("cephedeGold") ? parseInt(localStorage.getItem("cephedeGold")) : 0;
+let unlockedWeapons = localStorage.getItem("cephedeWeapons")
+    ? JSON.parse(localStorage.getItem("cephedeWeapons"))
+    : { single: true, double: false, auto: false, minigun: false, grenade: false, rpg: false };
+
+highScoreEl.textContent = highScore;
+startHighScoreEl.textContent = highScore;
+goldEl.textContent = gold;
+
+function loadSavedData() {
+    if (unlockedWeapons.double) {
+        const btn = document.getElementById('btn-double');
+        if (btn) { btn.textContent = "Desert Eagle"; btn.classList.remove('locked'); }
+    }
+    if (unlockedWeapons.auto) {
+        const btn = document.getElementById('btn-auto');
+        if (btn) { btn.textContent = "M-60"; btn.classList.remove('locked'); }
+    }
+    if (unlockedWeapons.minigun) {
+        const btn = document.getElementById('btn-minigun');
+        if (btn) { btn.textContent = "Minigun"; btn.classList.remove('locked'); }
+    }
+    if (unlockedWeapons.grenade) {
+        const btn = document.getElementById('btn-grenade');
+        if (btn) { btn.textContent = "Bomba"; btn.classList.remove('locked'); }
+        const gJoy = document.getElementById('grenade-joystick-container');
+        if (gJoy) gJoy.style.display = 'flex';
+    }
+    if (unlockedWeapons.rpg) {
+        const btn = document.getElementById('btn-rpg');
+        if (btn) { btn.textContent = "RPG"; btn.classList.remove('locked'); }
+        const gJoy = document.getElementById('grenade-joystick-container');
+        if (gJoy) gJoy.style.display = 'flex';
+    }
+}
+loadSavedData();
+
+let currentGameMode = 'normal';
+let currentMap = 'park';
+let mpActive = false;
+
+let totalWaves = 3;
+let currentWave = 1;
+let enemiesToSpawnInWave = 0;
+let enemiesSpawnedCount = 0;
+let pendingWaveGold = 0;
+
+function setGameMode(mode) {
+    const wasMp = currentGameMode === 'mp';
+    currentGameMode = mode;
+    ['normal', 'hard', 'ultra', 'wave', 'mp'].forEach(m => {
+        const b = document.getElementById('mode-' + m);
+        if (b) b.classList.toggle('selected', mode === m);
+    });
+
+    const waveBox = document.getElementById('wave-settings-box');
+    if (waveBox) {
+        waveBox.style.display = (mode === 'wave') ? 'flex' : 'none';
+    }
+
+    const nowMp = (mode === 'mp');
+    if (wasMp && !nowMp) { mpCleanup(); mpResult = null; }
+    mpActive = nowMp;
+    if (wasMp !== nowMp) {
+        if (!nowMp) mpRestoreSpWeapon();
+        initMapObjects();
+    }
+    if (nowMp) selectWeapon(MP_WEAPONS[currentWeapon] ? currentWeapon : 'single');
+
+    screenTitle.textContent = 'Cephede tek başına V1.3';
+    screenScore.innerHTML = nowMp
+        ? 'Arkadaşınla 1v1 savaş • harita rastgele seçilir'
+        : 'En Yüksek Skor: <span id="start-high-score">' + highScore + '</span>';
+    mpSetStatus(nowMp && !mpPeer ? 'Oda kur ve kodu arkadaşına gönder ya da gelen kodla katıl.' : '');
+    mpApplyUI();
+    mpRenderPanel();
+}
+
+// --- ana menü sayfaları ---
+let menuPage = 'main';
+function showMenuPage(p, keepMsg) {
+    menuPage = p;
+    ['main', 'sp', 'map', 'mp'].forEach(n => {
+        document.getElementById('page-' + n).classList.toggle('active', n === p);
+    });
+    document.getElementById('nav-left').style.display = (p === 'main') ? 'none' : 'flex';
+    document.getElementById('nav-back-btn').textContent = (p === 'mp') ? '🏠 Ana Menüye Dön' : '← Geri';
+    document.getElementById('nav-right').style.display = (p === 'sp' || p === 'map') ? 'flex' : 'none';
+    document.getElementById('nav-next-btn').style.display = (p === 'sp') ? '' : 'none';
+    startBtn.style.display = (p === 'map') ? '' : 'none';
+    if (!keepMsg && !mpActive) {
+        screenTitle.textContent = 'Cephede tek başına V1.3';
+        screenScore.innerHTML = 'En Yüksek Skor: <span id="start-high-score">' + highScore + '</span>';
+    }
+}
+function menuOpenSP() {
+    setGameMode(currentGameMode === 'mp' ? 'normal' : currentGameMode);
+    showMenuPage('sp');
+}
+function menuOpenMP() {
+    setGameMode('mp');
+    showMenuPage('mp');
+}
+function menuNext() {
+    if (menuPage === 'sp') showMenuPage('map');
+}
+function menuBack() {
+    if (menuPage === 'map') showMenuPage('sp');
+    else if (menuPage === 'sp') showMenuPage('main');
+    else if (menuPage === 'mp') {
+        mpLeave();
+        setGameMode('normal');
+        showMenuPage('main');
+    }
+}
+
+function setGameMap(map) {
+    currentMap = map;
+    document.getElementById('map-park').classList.toggle('selected', map === 'park');
+    document.getElementById('map-kanal').classList.toggle('selected', map === 'kanal');
+    document.getElementById('map-sehir').classList.toggle('selected', map === 'sehir');
+    initMapObjects();
+}
+
+let isPaused = false;
+let isMuted = false;
+
+function togglePauseBase() {
+    if (mpActive) return;
+    if (!isGameStarted || isGameOver || wavePromptScreen.style.display === "flex") return;
+    isPaused = !isPaused;
+    pauseScreen.style.display = isPaused ? "flex" : "none";
+    const pauseBtn = document.getElementById('btn-pause');
+    if (pauseBtn) {
+        pauseBtn.textContent = isPaused ? "Devam" : "Durdur";
+        pauseBtn.classList.toggle('active-state', isPaused);
+    }
+}
+
+function toggleMute() {
+    isMuted = !isMuted;
+    const muteBtn = document.getElementById('btn-mute');
+    if (muteBtn) {
+        muteBtn.textContent = isMuted ? "Ses: Kapalı" : "Ses: Açık";
+        muteBtn.classList.toggle('active-state', isMuted);
+    }
+}
+
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => { console.log("Tam ekran hatasi:", err); });
+    } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+    }
+}
+
+document.addEventListener("fullscreenchange", () => {
+    const fsBtn = document.getElementById('btn-fs');
+    if (fsBtn) {
+        fsBtn.textContent = document.fullscreenElement ? "Normal Ekran" : "Tam Ekran";
+        fsBtn.classList.toggle('active-state', !!document.fullscreenElement);
+    }
+});
+
+let audioCtx = null;
+function initAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playShootSound() {
+    if (isMuted || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+}
+
+function playRpgWhooshSound() {
+    if (isMuted || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.3);
+    osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+}
+
+function playRpgExplosionSound() {
+    if (isMuted || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(15, audioCtx.currentTime + 0.8);
+    gain.gain.setValueAtTime(0.7, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.8);
+}
+
+let lastStepTime = 0;
+function playStepSound() {
+    if (isMuted || !audioCtx) return;
+    const now = Date.now();
+    if (now - lastStepTime < 280) return;
+    lastStepTime = now;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+}
+
+function playHitSound() {
+    if (isMuted || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.08);
+}
+
+function playCoinSound() {
+    if (isMuted || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+    osc.frequency.setValueAtTime(1200, audioCtx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+}
+
+function playHealSound() {
+    if (isMuted || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+}
+
+function playGameOverSound() {
+    if (isMuted || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+}
+
+function playExplosionSound() {
+    if (isMuted || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 0.4);
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+}
+
+// =====================================================================
+//  3D SAHNE (Three.js)  — oyun mantığı 2D koordinatlarla (x, y) aynen çalışır,
+//  görüntüde oyun x → dünya X, oyun y → dünya Z olarak çizilir.
+// =====================================================================
+const WORLD_W = 1400;
+const WORLD_H = 900;
+
+// --- geometri / materyal önbellekleri ---
+const GC = {};
+function geo(key, make) { return GC[key] || (GC[key] = make()); }
+const gBox = (w, h, d) => geo('b' + w + ',' + h + ',' + d, () => new THREE.BoxGeometry(w, h, d));
+const gSphere = (r, ws, hs) => { ws = ws || 16; hs = hs || 12; return geo('s' + r + ',' + ws + ',' + hs, () => new THREE.SphereGeometry(r, ws, hs)); };
+const gCyl = (rt, rb, h, seg) => { seg = seg || 12; return geo('c' + rt + ',' + rb + ',' + h + ',' + seg, () => new THREE.CylinderGeometry(rt, rb, h, seg)); };
+const gPlane = () => geo('plane', () => new THREE.PlaneGeometry(1, 1));
+const gPlaneL = () => geo('planeL', () => { const g = new THREE.PlaneGeometry(1, 1); g.translate(0.5, 0, 0); return g; });
+const gCoin = () => geo('coin', () => new THREE.CylinderGeometry(8, 8, 2.8, 20).rotateZ(Math.PI / 2));
+
+const MC = {};
+function M(color, opts) {
+    const k = 'm' + color + '|' + (opts ? JSON.stringify(opts) : '');
+    return MC[k] || (MC[k] = new THREE.MeshStandardMaterial(Object.assign({ color: color, roughness: 0.8, metalness: 0.05 }, opts || {})));
+}
+function BM(color, opts) {
+    const k = 'b' + color + '|' + (opts ? JSON.stringify(opts) : '');
+    return MC[k] || (MC[k] = new THREE.MeshBasicMaterial(Object.assign({ color: color }, opts || {})));
+}
+function part(geom, mat, x, y, z, parent, shadow) {
+    const m = new THREE.Mesh(geom, mat);
+    m.position.set(x, y, z);
+    m.castShadow = shadow !== false;
+    m.receiveShadow = true;
+    if (parent) parent.add(m);
+    return m;
+}
+function rnd(a, b) { return a + Math.random() * (b - a); }
+
+// --- renderer / sahne / kamera / ışık ---
+const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+scene.fog = new THREE.Fog(0x000000, 800, 2200);
+
+const camera = new THREE.PerspectiveCamera(50, 1, 10, 4000);
+const camTarget = new THREE.Vector3(WORLD_W / 2, 0, WORLD_H / 2);
+let camSnap = true;
+let menuAngle = 0;
+
+const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.7);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -750; sun.shadow.camera.right = 750;
+sun.shadow.camera.top = 750; sun.shadow.camera.bottom = -750;
+sun.shadow.camera.near = 50; sun.shadow.camera.far = 2200;
+sun.shadow.bias = -0.0006;
+scene.add(sun);
+scene.add(sun.target);
+
+const flashLight = new THREE.PointLight(0xff9a3c, 0, 450, 2);
+scene.add(flashLight);
+
+const MAP_THEME = {
+    park:  { sky: 0x8ec3e8, fog: [0x8ec3e8, 1000, 2600], hemi: [0xdff0ff, 0x44603a, 0.75], sun: [0xfff1d0, 0.85], outer: 0x1f4a25, border: 0x6d4c41 },
+    kanal: { sky: 0x0a110c, fog: [0x0a110c, 800, 2000],  hemi: [0x9fd0b8, 0x20261f, 0.75], sun: [0xbfe3d2, 0.65], outer: 0x1a1b1d, border: 0x546e7a },
+    sehir: { sky: 0x141a2e, fog: [0x141a2e, 800, 2200],  hemi: [0xa9b9ee, 0x2a2c38, 0.7],  sun: [0xc9d4ff, 0.75], outer: 0x15151b, border: 0x90a4ae }
+};
+
+// --- procedural dokular ---
+function makeTex(size, draw) {
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    draw(c.getContext('2d'), size);
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.anisotropy = 4;
+    return t;
+}
+const TEX = {};
+function getGroundTex(map) {
+    if (TEX[map]) return TEX[map];
+    if (map === 'park') {
+        TEX[map] = makeTex(256, (g, s) => {
+            g.fillStyle = '#2f6b34'; g.fillRect(0, 0, s, s);
+            for (let i = 0; i < 1100; i++) {
+                g.fillStyle = 'rgba(' + ((rnd(20, 70)) | 0) + ',' + ((rnd(95, 160)) | 0) + ',' + ((rnd(30, 75)) | 0) + ',0.5)';
+                g.fillRect(rnd(0, s), rnd(0, s), rnd(1, 3), rnd(2, 7));
+            }
+        });
+    } else if (map === 'kanal') {
+        TEX[map] = makeTex(256, (g, s) => {
+            g.fillStyle = '#4a4c51'; g.fillRect(0, 0, s, s);
+            for (let i = 0; i < 700; i++) {
+                g.fillStyle = 'rgba(0,0,0,' + rnd(0.05, 0.18).toFixed(2) + ')';
+                g.fillRect(rnd(0, s), rnd(0, s), rnd(1, 4), rnd(1, 4));
+            }
+            g.strokeStyle = '#242528'; g.lineWidth = 4;
+            g.strokeRect(0, 0, s, s);
+            g.lineWidth = 2;
+            g.beginPath(); g.moveTo(s / 2, 0); g.lineTo(s / 2, s); g.moveTo(0, s / 2); g.lineTo(s, s / 2); g.stroke();
+        });
+    } else {
+        TEX[map] = makeTex(256, (g, s) => {
+            g.fillStyle = '#2c2c35'; g.fillRect(0, 0, s, s);
+            for (let i = 0; i < 900; i++) {
+                const v = (rnd(50, 90)) | 0;
+                g.fillStyle = 'rgba(' + v + ',' + v + ',' + (v + 8) + ',0.45)';
+                g.fillRect(rnd(0, s), rnd(0, s), rnd(1, 2.5), rnd(1, 2.5));
+            }
+        });
+    }
+    return TEX[map];
+}
+let buildingTex = null;
+function getBuildingTex() {
+    if (buildingTex) return buildingTex;
+    const lit = [];
+    for (let i = 0; i < 16; i++) lit.push(Math.random() < 0.45);
+    const draw = (emissive) => (g, s) => {
+        g.fillStyle = emissive ? '#000' : '#4a5d68'; g.fillRect(0, 0, s, s);
+        for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
+            const x = c * 32 + 6, y = r * 32 + 7;
+            if (emissive) { if (lit[r * 4 + c]) { g.fillStyle = '#ffd77a'; g.fillRect(x, y, 20, 18); } }
+            else { g.fillStyle = lit[r * 4 + c] ? '#ffd77a' : '#1b252b'; g.fillRect(x, y, 20, 18); }
+        }
+    };
+    buildingTex = { map: makeTex(128, draw(false)), emi: makeTex(128, draw(true)) };
+    return buildingTex;
+}
+function makeLabelSprite(text) {
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 64;
+    const g = c.getContext('2d');
+    g.font = 'bold 30px Arial';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.lineWidth = 6; g.strokeStyle = 'rgba(0,0,0,0.8)'; g.strokeText(text, 128, 32);
+    g.fillStyle = '#a5d6a7'; g.fillText(text, 128, 32);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
+    sp.scale.set(84, 21, 1);
+    return sp;
+}
+
+// --- statik harita (zemin, duvarlar, ağaçlar, lağım havuzları) ---
+const staticGroup = new THREE.Group();
+scene.add(staticGroup);
+let staticDisposables = [];
+
+function clearStatic() {
+    while (staticGroup.children.length) staticGroup.remove(staticGroup.children[0]);
+    staticDisposables.forEach(m => {
+        if (m.map) m.map.dispose();
+        if (m.emissiveMap) m.emissiveMap.dispose();
+        m.dispose();
+    });
+    staticDisposables = [];
+}
+
+function buildingSideMat(repX, repY) {
+    const bt = getBuildingTex();
+    const map = bt.map.clone(); map.needsUpdate = true; map.repeat.set(repX, repY);
+    const emi = bt.emi.clone(); emi.needsUpdate = true; emi.repeat.set(repX, repY);
+    const m = new THREE.MeshStandardMaterial({ map: map, emissiveMap: emi, emissive: 0xffffff, emissiveIntensity: 0.9, roughness: 0.85 });
+    staticDisposables.push(m);
+    return m;
+}
+
+function buildStaticScene() {
+    clearStatic();
+    const th = MAP_THEME[currentMap] || MAP_THEME.park;
+
+    scene.background.set(th.sky);
+    scene.fog.color.set(th.fog[0]); scene.fog.near = th.fog[1]; scene.fog.far = th.fog[2];
+    hemi.color.set(th.hemi[0]); hemi.groundColor.set(th.hemi[1]); hemi.intensity = th.hemi[2];
+    sun.color.set(th.sun[0]); sun.intensity = th.sun[1];
+
+    // dış zemin
+    const outer = part(gBox(6000, 2, 6000), M(th.outer), WORLD_W / 2, -2, WORLD_H / 2, staticGroup, false);
+    outer.castShadow = false;
+
+    // oyun alanı zemini (dokulu)
+    const gt = getGroundTex(currentMap);
+    gt.repeat.set(WORLD_W / 200, WORLD_H / 200);
+    const floorMat = new THREE.MeshStandardMaterial({ map: gt, roughness: 0.95, metalness: 0 });
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(WORLD_W, WORLD_H), floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.set(WORLD_W / 2, 0, WORLD_H / 2);
+    floor.receiveShadow = true;
+    staticGroup.add(floor);
+
+    // sınır şeritleri
+    const bm = M(th.border, { roughness: 0.6 });
+    part(gBox(WORLD_W + 16, 7, 8), bm, WORLD_W / 2, 3.5, -4, staticGroup);
+    part(gBox(WORLD_W + 16, 7, 8), bm, WORLD_W / 2, 3.5, WORLD_H + 4, staticGroup);
+    part(gBox(8, 7, WORLD_H), bm, -4, 3.5, WORLD_H / 2, staticGroup);
+    part(gBox(8, 7, WORLD_H), bm, WORLD_W + 4, 3.5, WORLD_H / 2, staticGroup);
+
+    // şehir: araç şeritleri
+    if (currentMap === 'sehir') {
+        movingCars.forEach(car => {
+            const cz = car.y + car.h / 2;
+            const road = part(gBox(WORLD_W, 0.6, 56), M(0x1c1c22, { roughness: 1 }), WORLD_W / 2, 0.3, cz, staticGroup, false);
+            road.castShadow = false;
+            for (let x = 20; x < WORLD_W; x += 80) {
+                const dash = part(gBox(34, 0.8, 2.5), M(0xe8e8e8, { roughness: 1 }), x, 0.5, cz, staticGroup, false);
+                dash.castShadow = false;
+            }
+        });
+    }
+
+    // engeller
+    obstacles.forEach(obs => {
+        if (obs.type === 'wall') {
+            const h3 = obs.height3d;
+            if (currentMap === 'sehir') {
+                const sx = buildingSideMat(Math.max(1, Math.round(obs.h / 80)), Math.max(1, Math.round(h3 / 80)));
+                const sz = buildingSideMat(Math.max(1, Math.round(obs.w / 80)), Math.max(1, Math.round(h3 / 80)));
+                const roof = M(0x37474f);
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(obs.w, h3, obs.h), [sx, sx, roof, roof, sz, sz]);
+                mesh.position.set(obs.x + obs.w / 2, h3 / 2, obs.y + obs.h / 2);
+                mesh.castShadow = true; mesh.receiveShadow = true;
+                staticGroup.add(mesh);
+                staticDisposables.push(mesh.geometry);
+                part(gBox(obs.w + 6, 5, obs.h + 6), M(0x78909c), obs.x + obs.w / 2, h3 + 2.5, obs.y + obs.h / 2, staticGroup);
+            } else {
+                const body = currentMap === 'kanal' ? M(0x6f7378) : M(0x7b5a47);
+                const cap = currentMap === 'kanal' ? M(0x8d9298) : M(0x9a7a64);
+                part(gBox(obs.w, h3, obs.h), body, obs.x + obs.w / 2, h3 / 2, obs.y + obs.h / 2, staticGroup);
+                part(gBox(obs.w + 5, 5, obs.h + 5), cap, obs.x + obs.w / 2, h3 + 2.5, obs.y + obs.h / 2, staticGroup);
+            }
+        } else if (obs.type === 'tree') {
+            const r = obs.radius, h3 = obs.height3d;
+            part(gCyl(r * 0.2, r * 0.3, h3 * 0.6, 8), M(0x5d4037), obs.x, h3 * 0.3, obs.y, staticGroup);
+            part(gSphere(r * 1.15, 14, 10), M(0x2e7d32), obs.x, h3 * 0.7, obs.y, staticGroup);
+            part(gSphere(r * 0.8, 12, 9), M(0x43a047), obs.x + r * 0.4, h3 * 0.88, obs.y - r * 0.2, staticGroup);
+            part(gSphere(r * 0.7, 12, 9), M(0x388e3c), obs.x - r * 0.45, h3 * 0.62, obs.y + r * 0.3, staticGroup);
+        }
+    });
+
+    // lağım havuzları
+    sewagePools.forEach(pool => {
+        const edge = new THREE.Mesh(new THREE.CircleGeometry(1, 48), BM(0x1b5e20));
+        edge.scale.set(pool.rx + 5, pool.ry + 5, 1);
+        edge.rotation.x = -Math.PI / 2;
+        edge.position.set(pool.cx, 0.5, pool.cy);
+        staticGroup.add(edge);
+        staticDisposables.push(edge.geometry);
+        const water = new THREE.Mesh(new THREE.CircleGeometry(1, 48), new THREE.MeshStandardMaterial({
+            color: 0x66bb6a, emissive: 0x1b5e20, emissiveIntensity: 0.6, roughness: 0.25, metalness: 0.2, transparent: true, opacity: 0.85
+        }));
+        water.scale.set(pool.rx, pool.ry, 1);
+        water.rotation.x = -Math.PI / 2;
+        water.position.set(pool.cx, 0.9, pool.cy);
+        water.receiveShadow = true;
+        staticGroup.add(water);
+        staticDisposables.push(water.geometry, water.material);
+        const lbl = makeLabelSprite('Lağım Pisliği');
+        lbl.position.set(pool.cx, 34, pool.cy - pool.ry);
+        staticGroup.add(lbl);
+        staticDisposables.push(lbl.material);
+    });
+}
+
+// --- insan modeli (oyuncu / düşman / boss) ---
+function buildWeapon(type) {
+    const w = new THREE.Group();
+    const dark = M(0x15171a), mid = M(0x3a3f46, { metalness: 0.6, roughness: 0.4 });
+    if (type === 'single') {
+        part(gBox(16, 5, 4), dark, 8, 0, 8, w);
+        part(gBox(5, 9, 4), dark, 2, -6, 8, w);
+        w.position.set(14, 40, 0);
+    } else if (type === 'double') {
+        [-13, 13].forEach(z => {
+            part(gBox(16, 5, 4), dark, 8, 0, z, w);
+            part(gBox(5, 9, 4), dark, 2, -6, z, w);
+        });
+        w.position.set(14, 40, 0);
+    } else if (type === 'auto') {
+        part(gBox(30, 6, 5), dark, 12, 0, 6, w);
+        part(gBox(4, 11, 5), mid, 10, -8, 6, w);
+        part(gBox(9, 8, 4), dark, -8, -1, 6, w);
+        part(gBox(8, 3, 3), mid, 20, 5, 6, w);
+        w.position.set(14, 40, 0);
+    } else if (type === 'minigun') {
+        part(gBox(14, 12, 12), mid, 2, 0, 6, w);
+        [[3, 3], [3, -3], [-3, 3], [-3, -3]].forEach(p => {
+            const b = part(gCyl(1.8, 1.8, 28, 8), dark, 20, p[0], 6 + p[1], w);
+            b.rotation.z = Math.PI / 2;
+        });
+        part(gBox(10, 10, 10), M(0x2e3b2f), -6, -8, 6, w);
+        w.position.set(14, 40, 0);
+    } else if (type === 'grenade') {
+        part(gSphere(5.5, 12, 9), M(0x2e5d2f), 6, 0, 7, w);
+        part(gBox(3, 3, 3), mid, 6, 6, 7, w);
+        w.position.set(14, 40, 0);
+    } else if (type === 'rpg') {
+        // RPG-7 Omzunda duran tasarım
+        const green = M(0x3b4a2a);
+        const wood = M(0x5c3a21);
+        const metal = M(0x222222, { metalness: 0.8, roughness: 0.3 });
+
+        // Uzun Tüp (omuzda duracak)
+        const tube = part(gCyl(2.8, 2.8, 42, 12), green, 0, 0, 0, w);
+        tube.rotation.z = Math.PI / 2;
+
+        // Kabza
+        const grip = part(gBox(4, 10, 3), wood, -4, -8, 0, w);
+
+        // Nişangah ve detaylar
+        part(gBox(3, 4, 2), metal, 5, 5, 0, w);
+        part(gCyl(3.8, 3.8, 10, 12), wood, -8, 0, 0, w).rotation.z = Math.PI / 2; // Ahşap kabza kaplaması
+
+        // Ön huni/Ağız
+        const cone = part(gCyl(2.8, 4.5, 8, 12), metal, 18, 0, 0, w);
+        cone.rotation.z = -Math.PI / 2;
+
+        // Omzun üstüne koyma konumu (sağ omuz)
+        w.position.set(-2, 52, -10);
+    }
+    return w;
+}
+
+function createBar(width, height, y, color) {
+    const grp = new THREE.Group();
+    grp.position.y = y;
+    const bg = new THREE.Mesh(gPlane(), BM(0x000000, { depthTest: false, transparent: true, fog: false }));
+    bg.scale.set(width + 3, height + 3, 1);
+    bg.renderOrder = 10;
+    const fg = new THREE.Mesh(gPlaneL(), BM(color, { depthTest: false, transparent: true, fog: false }));
+    fg.position.set(-width / 2, 0, 0.1);
+    fg.scale.set(width, height, 1);
+    fg.renderOrder = 11;
+    grp.add(bg, fg);
+    return { grp: grp, fg: fg, width: width };
+}
+function setBar(bar, ratio) {
+    bar.fg.scale.x = Math.max(0.0001, Math.min(1, ratio)) * bar.width;
+}
+
+function createHuman(kind, color) {
+    const isMega = kind === 'mega';
+    const isBoss = kind === 'boss' || isMega, isPlayer = kind === 'player';
+    const root = new THREE.Group();
+    const model = new THREE.Group();
+    root.add(model);
+    const skin = isMega ? 0x2a2a2a : (isBoss ? 0xb39ddb : 0xf1c9a0);
+    const shade = new THREE.Color(color).multiplyScalar(0.72).getHex();
+
+    const legs = [];
+    [-6, 6].forEach(z => {
+        const leg = new THREE.Group();
+        leg.position.set(0, 24, z);
+        part(gBox(8, 24, 8), M(isMega ? 0x070707 : 0x252a31), 0, -12, 0, leg);
+        part(gBox(12, 4, 9), M(0x111111), 2, -22, 0, leg);
+        model.add(leg);
+        legs.push(leg);
+    });
+    const bodyMat = isPlayer ? M(color).clone() : M(color);
+    const armMat = isPlayer ? M(shade).clone() : M(shade);
+    part(gBox(14, 24, 24), bodyMat, 0, 36, 0, model);          // gövde
+    part(gBox(15, 3, 25), isMega ? M(0xb71c1c, { emissive: 0x7f0000, emissiveIntensity: 0.8 }) : M(0x1b1b1b), 0, 25, 0, model);        // kemer
+    [-12, 12].forEach(z => {
+        part(gBox(18, 6, 6), armMat, 9, 41, z, model);        // kol
+        part(gBox(5, 5, 5), M(skin), 19, 41, z * 0.75, model);  // el
+    });
+    part(gSphere(8, 16, 12), M(skin), 0, 57, 0, model);          // kafa
+    const capColor = isMega ? 0x000000 : (isBoss ? 0x4a148c : (isPlayer ? 0x0d47a1 : 0x8e0000));
+    const cap = part(geo('cap', () => new THREE.SphereGeometry(9, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2)), M(capColor), 0, 58, 0, model);
+    cap.scale.set(1, 0.9, 1);
+    const eyeMat = isBoss ? BM(0xff1744) : BM(0x000000);
+    part(gSphere(1.4, 8, 6), eyeMat, 7.3, 58, -3.5, model, false);
+    part(gSphere(1.4, 8, 6), eyeMat, 7.3, 58, 3.5, model, false);
+    if (isBoss) {
+        [-5, 5].forEach(z => {
+            const horn = part(gCyl(0.1, 2.2, 9, 8), M(isMega ? 0x1a1a1a : 0xeeeeee), 0, 67, z, model);
+            horn.rotation.x = z > 0 ? -0.4 : 0.4;
+        });
+    }
+    if (isMega) {
+        [-1, 1].forEach(s => {
+            part(gCyl(0, 3.2, 12, 8), M(0x111111), 0, 52, s * 15, model);
+            part(gCyl(0, 2.4, 9, 8), M(0x111111), 0, 47, s * 20, model);
+        });
+        part(gBox(2, 6, 6), BM(0xff1744), 7.6, 38, 0, model, false);   // parlayan göğüs çekirdeği
+    }
+
+    const weapons = {};
+    if (isPlayer) {
+        ['single', 'double', 'auto', 'minigun', 'grenade', 'rpg'].forEach(t => {
+            weapons[t] = buildWeapon(t);
+            weapons[t].visible = false;
+            model.add(weapons[t]);
+        });
+    } else {
+        const t = isBoss ? 'minigun' : 'auto';
+        weapons[t] = buildWeapon(t);
+        model.add(weapons[t]);
+    }
+
+    let flash = null;
+    if (isPlayer) {
+        flash = new THREE.Mesh(gSphere(5, 8, 6), BM(0xfff176, { transparent: true, opacity: 0.9 }));
+        flash.position.set(36, 40, 8);
+        flash.visible = false;
+        model.add(flash);
+    }
+
+    const sc = isMega ? 4.2 : (isBoss ? 2.8 : 1);
+    model.scale.setScalar(sc);
+
+    const bar = createBar(isMega ? 150 : (isBoss ? 90 : (isPlayer ? 40 : 34)), isMega ? 10 : (isBoss ? 8 : 5), isBoss ? 62 * sc + 16 : 80, isMega ? 0xd50000 : (isBoss ? 0xab47bc : (isPlayer ? 0x76ff03 : 0xff1744)));
+    root.add(bar.grp);
+
+    return { group: root, model: model, legs: legs, weapons: weapons, flash: flash, bar: bar, bodyMat: bodyMat, armMat: armMat };
+}
+
+const player3d = createHuman('player', 0x2196F3);
+scene.add(player3d.group);
+
+// --- rakip oyuncu (çok oyunculu) ---
+const remote3d = createHuman('player', 0xf44336);
+remote3d.group.visible = false;
+scene.add(remote3d.group);
+
+// --- nişan göstergesi (bomba) ---
+const aim = new THREE.Group();
+(function () {
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(70, 48), new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.22, depthWrite: false }));
+    disc.rotation.x = -Math.PI / 2;
+    const ring = new THREE.Mesh(new THREE.RingGeometry(66, 70, 64), new THREE.MeshBasicMaterial({ color: 0xff3030, transparent: true, opacity: 0.85, side: THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2;
+    const cm = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const c1 = new THREE.Mesh(new THREE.BoxGeometry(18, 0.5, 2), cm);
+    const c2 = new THREE.Mesh(new THREE.BoxGeometry(2, 0.5, 18), cm);
+    aim.add(disc, ring, c1, c2);
+    aim.position.y = 1.5;
+    aim.visible = false;
+    scene.add(aim);
+})();
+
+// --- nişan göstergesi (RPG - 3 kat daha büyük, kırmızı şeffaf daire) ---
+const rpgAim = new THREE.Group();
+(function () {
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(210, 48), new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.3, depthWrite: false }));
+    disc.rotation.x = -Math.PI / 2;
+    const ring = new THREE.Mesh(new THREE.RingGeometry(204, 210, 64), new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.9, side: THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2;
+    const cm = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const c1 = new THREE.Mesh(new THREE.BoxGeometry(36, 0.5, 3), cm);
+    const c2 = new THREE.Mesh(new THREE.BoxGeometry(3, 0.5, 36), cm);
+    rpgAim.add(disc, ring, c1, c2);
+    rpgAim.position.y = 1.5;
+    rpgAim.visible = false;
+    scene.add(rpgAim);
+})();
+
+// --- dinamik varlıklar (kaydedici sistem) ---
+let syncStamp = 0;
+function sync(list, reg) {
+    const st = ++syncStamp;
+    for (let i = 0; i < list.length; i++) {
+        const e = list[i];
+        if (!e._m) { e._m = reg.create(e); scene.add(e._m.group); reg.set.add(e); }
+        reg.update(e);
+        e._s = st;
+    }
+    reg.set.forEach(e => {
+        if (e._s !== st) {
+            scene.remove(e._m.group);
+            if (reg.dispose) reg.dispose(e._m);
+            e._m = null;
+            reg.set.delete(e);
+        }
+    });
+}
+
+function animateLegs(h, walk) {
+    const sw = Math.sin(walk) * 0.8;
+    h.legs[0].rotation.z = sw;
+    h.legs[1].rotation.z = -sw;
+}
+
+const regEnemies = {
+    set: new Set(),
+    create: en => createHuman(en.isMega ? 'mega' : (en.isBoss ? 'boss' : 'enemy'), en.isMega ? 0x0a0a0a : (en.isBoss ? 0x8e24aa : 0xf44336)),
+    update: en => {
+        const h = en._m;
+        h.group.position.set(en.x, 0, en.y);
+        h.model.rotation.y = -en.angle;
+        animateLegs(h, en.walkCycle);
+        setBar(h.bar, en.hp / en.maxHp);
+        h.bar.grp.quaternion.copy(camera.quaternion);
+    }
+};
+
+const regBullets = {
+    set: new Set(),
+    create: b => {
+        const m = new THREE.Mesh(gSphere(b.radius, 8, 6), BM(b.color));
+        m.scale.set(2.4, 1, 1);
+        b._x0 = b.x; b._y0 = b.y;
+        b._d0 = Math.max(1, Math.hypot(player.x - b.x, player.y - b.y));
+        return { group: m };
+    },
+    update: b => {
+        const g = b._m.group;
+        let h = (!b.isEnemy && viewMode === 'fps') ? 46 : 38;
+        if (b.isEnemy && (b.radius === 10 || b.radius === 14)) {
+            const k = Math.min(1, Math.hypot(b.x - b._x0, b.y - b._y0) / b._d0);
+            const h0 = (b.radius === 14) ? 170 : 105;
+            h = h0 + (44 - h0) * k;
+        }
+        g.position.set(b.x, h, b.y);
+        g.rotation.y = -Math.atan2(b.vy, b.vx);
+    }
+};
+
+const regCoins = {
+    set: new Set(),
+    create: c => {
+        const m = new THREE.Mesh(gCoin(), M(0xffd700, { metalness: 0.8, roughness: 0.3, emissive: 0x7a5c00, emissiveIntensity: 0.7 }));
+        m.castShadow = true;
+        return { group: m };
+    },
+    update: c => {
+        const t = performance.now() / 1000;
+        const g = c._m.group;
+        g.position.set(c.x, 13 + Math.sin(t * 3 + c.x) * 2.5, c.y);
+        g.rotation.y = t * 3 + c.x;
+    }
+};
+
+const regPacks = {
+    set: new Set(),
+    create: p => {
+        const g = new THREE.Group();
+        part(gBox(18, 18, 18), M(0xf5f5f5), 0, 0, 0, g);
+        const red = M(0xe53935, { emissive: 0x6b0000, emissiveIntensity: 0.5 });
+        part(gBox(19.5, 5, 5), red, 0, 0, 0, g, false);
+        part(gBox(5, 19.5, 5), red, 0, 0, 0, g, false);
+        part(gBox(5, 5, 19.5), red, 0, 0, 0, g, false);
+        return { group: g };
+    },
+    update: p => {
+        const t = performance.now() / 1000;
+        const g = p._m.group;
+        g.position.set(p.x, 16 + Math.sin(t * 2.5 + p.x) * 3, p.y);
+        g.rotation.y = t * 1.6;
+    }
+};
+
+const regCars = {
+    set: new Set(),
+    create: car => {
+        const g = new THREE.Group();
+        const body = new THREE.Group();
+        g.add(body);
+        part(gBox(60, 11, 30), M(new THREE.Color(car.color).getHex(), { metalness: 0.5, roughness: 0.35 }), 0, 11, 0, body);
+        part(gBox(28, 10, 25), M(0x20262b, { metalness: 0.3, roughness: 0.2 }), -4, 21, 0, body);
+        part(gBox(30, 2, 27), M(new THREE.Color(car.color).getHex()), -4, 26.5, 0, body);
+        [[-19, -15], [-19, 15], [19, -15], [19, 15]].forEach(p => {
+            const w = part(gCyl(7, 7, 6, 14), M(0x0e0e0e), p[0], 7, p[1], body);
+            w.rotation.x = Math.PI / 2;
+        });
+        part(gBox(2, 4, 6), BM(0xfff8c4), 30.5, 13, -9, body, false);
+        part(gBox(2, 4, 6), BM(0xfff8c4), 30.5, 13, 9, body, false);
+        part(gBox(2, 4, 6), BM(0xff1744), -30.5, 13, -9, body, false);
+        part(gBox(2, 4, 6), BM(0xff1744), -30.5, 13, 9, body, false);
+        return { group: g, body: body };
+    },
+    update: car => {
+        const m = car._m;
+        m.group.position.set(car.x + car.w / 2, 0, car.y + car.h / 2);
+        m.body.rotation.y = car.vx >= 0 ? 0 : Math.PI;
+    }
+};
+
+const regExplosions = {
+    set: new Set(),
+    create: ex => {
+        const grp = new THREE.Group();
+        const m1 = new THREE.MeshBasicMaterial({ color: 0xff6a00, transparent: true, depthWrite: false });
+        const m2 = new THREE.MeshBasicMaterial({ color: 0xffe082, transparent: true, depthWrite: false });
+        const m3 = new THREE.MeshBasicMaterial({ color: 0xffb74d, transparent: true, depthWrite: false, side: THREE.DoubleSide });
+        const s1 = new THREE.Mesh(gSphere(1, 20, 14), m1);
+        const s2 = new THREE.Mesh(gSphere(1, 16, 12), m2);
+        const ring = new THREE.Mesh(geo('ring1', () => new THREE.RingGeometry(0.85, 1, 48)), m3);
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.y = 1.5;
+        grp.add(s1, s2, ring);
+        return { group: grp, m1: m1, m2: m2, m3: m3, s1: s1, s2: s2, ring: ring };
+    },
+    update: ex => {
+        const m = ex._m;
+        const k = 1 - ex.timer / 40;
+        const a = Math.max(0, ex.timer / 40);
+        const r = ex.radius * Math.max(0.05, k);
+        m.group.position.set(ex.x, 0, ex.y);
+        m.s1.scale.setScalar(r * 0.8); m.s1.position.y = r * 0.4;
+        m.s2.scale.setScalar(r * 0.5); m.s2.position.y = r * 0.45;
+        m.ring.scale.setScalar(ex.radius * Math.min(1, k * 1.6) + 1);
+        m.m1.opacity = a * 0.75; m.m2.opacity = a; m.m3.opacity = a * 0.9;
+    },
+    dispose: m => { m.m1.dispose(); m.m2.dispose(); m.m3.dispose(); }
+};
+
+const regRpgRockets = {
+    set: new Set(),
+    create: r => {
+        const grp = new THREE.Group();
+        // Roket Başlığı
+        const head = part(gCyl(0, 3, 12, 10), BM(0x4a5d23), 0, 0, 0, grp);
+        head.rotation.z = -Math.PI / 2;
+        // Roket Gövdesi
+        const body = part(gCyl(2, 2, 16, 10), BM(0x222222), -10, 0, 0, grp);
+        body.rotation.z = -Math.PI / 2;
+        // Alev Partikülleri ve Alevler
+        const fire = part(gCyl(3, 0.5, 14, 8), BM(0xff5722, { transparent: true, opacity: 0.9 }), -23, 0, 0, grp);
+        fire.rotation.z = -Math.PI / 2;
+        const innerFire = part(gCyl(1.8, 0.1, 10, 8), BM(0xffeb3b, { transparent: true, opacity: 0.9 }), -21, 0, 0, grp);
+        innerFire.rotation.z = -Math.PI / 2;
+        return { group: grp, fire: fire, innerFire: innerFire };
+    },
+    update: r => {
+        const m = r._m;
+        const angle = Math.atan2(r.targetY - r.startY, r.targetX - r.startX);
+        const totalDist = Math.hypot(r.targetX - r.startX, r.targetY - r.startY);
+        const currDist = Math.hypot(r.x - r.startX, r.y - r.startY);
+        const progress = Math.min(1, currDist / totalDist);
+
+        // Havada yay çizerek düşme efekti
+        const arcHeight = Math.sin(progress * Math.PI) * 80;
+        const currentY = (45 * (1 - progress)) + (2 * progress) + arcHeight;
+
+        m.group.position.set(r.x, currentY, r.y);
+        m.group.rotation.y = -angle;
+        m.group.rotation.z = (0.5 - progress) * 0.8; // Havaya kalkıp hedefe doğru alçalma açısı
+
+        // Alev ve partikül animasyonu
+        const fl = 1 + Math.random() * 0.4;
+        m.fire.scale.set(fl, 1, fl);
+        m.innerFire.scale.set(fl, 1, fl);
+
+        // Arkasında alev ve duman partikülleri bırakma
+        if (Math.random() < 0.6) {
+            const pMat = BM(Math.random() < 0.5 ? 0xff9800 : 0x555555, { transparent: true, opacity: 0.7 });
+            const p = new THREE.Mesh(gSphere(1.5 + Math.random() * 3, 6, 6), pMat);
+            p.position.set(r.x - Math.cos(angle) * 20 + rnd(-3, 3), currentY + rnd(-3, 3), r.y - Math.sin(angle) * 20 + rnd(-3, 3));
+            scene.add(p);
+            setTimeout(() => scene.remove(p), 180 + Math.random() * 100);
+        }
+    }
+};
+
+// --- görüntü döngüsü yardımcıları ---
+const raycaster = new THREE.Raycaster();
+const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+const rayHit = new THREE.Vector3();
+const screenMouse = { x: window.innerWidth / 2 + 100, y: window.innerHeight / 2 };
+
+function updateMouseWorld() {
+    if (!isGameStarted || viewMode === 'fps') return;
+    const nx = (screenMouse.x / window.innerWidth) * 2 - 1;
+    const ny = -(screenMouse.y / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera({ x: nx, y: ny }, camera);
+    if (raycaster.ray.intersectPlane(groundPlane, rayHit)) {
+        mouse.x = rayHit.x;
+        mouse.y = rayHit.z;
+    }
+}
+
+function updateCamera() {
+    const aspect = window.innerWidth / window.innerHeight;
+    let cx, cz;
+    if (isGameStarted && viewMode === 'fps') {
+        const dead = player.hp <= 0;
+        const moving = player.walkCycle > 0;
+        const bob = (!dead && moving) ? Math.sin(player.walkCycle) * 1.6 : 0;
+        let sx = 0, sy = 0, sz = 0, roll = 0;
+        if (screenShakeTimer > 0) {
+            sx = (Math.random() - 0.5) * 4; sy = (Math.random() - 0.5) * 3; sz = (Math.random() - 0.5) * 4;
+            roll = (Math.random() - 0.5) * 0.04;
+        }
+        camera.position.set(player.x + sx, (dead ? 9 : 50 + bob) + sy, player.y + sz);
+        camera.rotation.set(lookPitch + (dead ? -0.3 : 0), -player.angle - Math.PI / 2, dead ? 0.6 : roll);
+        camTarget.set(player.x, 0, player.y);
+        cx = player.x; cz = player.y;
+        camSnap = true;
+    } else if (isGameStarted) {
+        const tx = Math.max(250, Math.min(WORLD_W - 250, player.x));
+        const tz = Math.max(180, Math.min(WORLD_H - 180, player.y));
+        if (camSnap) { camTarget.set(tx, 0, tz); camSnap = false; }
+        else { camTarget.x += (tx - camTarget.x) * 0.12; camTarget.z += (tz - camTarget.z) * 0.12; }
+        const dist = 640 * Math.max(1, 1.45 / aspect);
+        let sx = 0, sy = 0, sz = 0;
+        if (screenShakeTimer > 0) {
+            sx = (Math.random() - 0.5) * 12; sy = (Math.random() - 0.5) * 8; sz = (Math.random() - 0.5) * 12;
+        }
+        camera.position.set(camTarget.x + sx, dist * 0.80 + sy, camTarget.z + dist * 0.60 + sz);
+        camera.lookAt(camTarget.x, 0, camTarget.z);
+        cx = camTarget.x; cz = camTarget.z;
+    } else {
+        menuAngle += 0.0025;
+        cx = WORLD_W / 2; cz = WORLD_H / 2;
+        camera.position.set(cx + Math.cos(menuAngle) * 1000, 620, cz + Math.sin(menuAngle) * 800);
+        camera.lookAt(cx, 0, cz);
+        camSnap = true;
+    }
+    camera.updateMatrixWorld();
+    sun.position.set(cx + 300, 800, cz + 400);
+    sun.target.position.set(cx, 0, cz);
+    sun.target.updateMatrixWorld();
+}
+
+function getGrenadeTarget() {
+    const useJoy = (grenadeVector.x !== 0 || grenadeVector.y !== 0);
+    let dx, dy;
+    if (useJoy) {
+        if (viewMode === 'fps') {
+            const f = -grenadeVector.y, s = grenadeVector.x;
+            const ca = Math.cos(player.angle), sa = Math.sin(player.angle);
+            dx = f * ca - s * sa; dy = f * sa + s * ca;
+        } else { dx = grenadeVector.x; dy = grenadeVector.y; }
+    } else { dx = Math.cos(player.angle); dy = Math.sin(player.angle); }
+    let tx = player.x + dx * 150;
+    let ty = player.y + dy * 150;
+    tx = Math.max(50, Math.min(WORLD_W - 50, tx));
+    ty = Math.max(50, Math.min(WORLD_H - 50, ty));
+    return { x: tx, y: ty };
+}
+
+function getRpgTarget() {
+    const useJoy = (grenadeVector.x !== 0 || grenadeVector.y !== 0);
+    let dx, dy;
+    if (useJoy) {
+        if (viewMode === 'fps') {
+            const f = -grenadeVector.y, s = grenadeVector.x;
+            const ca = Math.cos(player.angle), sa = Math.sin(player.angle);
+            dx = f * ca - s * sa; dy = f * sa + s * ca;
+        } else { dx = grenadeVector.x; dy = grenadeVector.y; }
+    } else { dx = Math.cos(player.angle); dy = Math.sin(player.angle); }
+    let tx = player.x + dx * 280;
+    let ty = player.y + dy * 280;
+    tx = Math.max(80, Math.min(WORLD_W - 80, tx));
+    ty = Math.max(80, Math.min(WORLD_H - 80, ty));
+    return { x: tx, y: ty };
+}
+
+function updatePlayer3D() {
+    const p = player3d;
+    const fps = viewMode === 'fps';
+    const now = Date.now();
+    p.group.visible = isGameStarted && !fps;
+    crosshair.style.display = (fps && gameplayActive() && scopeAmt < 0.3) ? 'block' : 'none';
+
+    if (isGameStarted) {
+        if (player.hp < lastHpSeen) hurtAlpha = Math.min(1, hurtAlpha + 0.6);
+        lastHpSeen = player.hp;
+    }
+    hurtAlpha *= 0.93;
+    hurtEl.style.opacity = hurtAlpha.toFixed(3);
+
+    fpsRig.visible = fps && isGameStarted && player.hp > 0 && scopeAmt < 0.6;
+    if (fps && isGameStarted) {
+        for (const k in fpsWeapons) fpsWeapons[k].visible = (k === currentWeapon);
+        const kick = Math.max(0, 1 - (now - player.lastShot) / 110);
+        const t = performance.now() / 1000;
+        const moving = player.walkCycle > 0;
+        fpsRig.position.set(
+            4 + (moving ? Math.cos(player.walkCycle) * 0.5 : 0),
+            -11 + (moving ? Math.abs(Math.sin(player.walkCycle)) * 0.8 : 0) + Math.sin(t * 1.5) * 0.15,
+            -18 + kick * 3.5
+        );
+        fpsRig.rotation.x = kick * 0.08;
+        fpsFlash.visible = currentWeapon !== 'grenade' && currentWeapon !== 'rpg' && (now - player.lastShot) < 55;
+    }
+
+    if (!isGameStarted || fps) return;
+    p.group.position.set(player.x, 0, player.y);
+    p.model.rotation.y = -player.angle;
+    const dead = player.hp <= 0;
+    p.model.rotation.z = dead ? Math.PI / 2 : 0;
+    p.model.position.y = dead ? 12 : Math.abs(Math.sin(player.walkCycle)) * 1.2;
+    animateLegs(p, player.walkCycle);
+    for (const k in p.weapons) p.weapons[k].visible = (k === currentWeapon);
+    p.flash.visible = !dead && currentWeapon !== 'grenade' && currentWeapon !== 'rpg' && (now - player.lastShot) < 55;
+    setBar(p.bar, player.hp / player.maxHp);
+    p.bar.grp.quaternion.copy(camera.quaternion);
+}
+
+function render3D() {
+    updatePlayer3D();
+    updateRemote3D();
+    sync(enemies, regEnemies);
+    sync(bullets, regBullets);
+    sync(rpgRockets, regRpgRockets);
+    sync(coins, regCoins);
+    sync(healthPacks, regPacks);
+    sync(movingCars, regCars);
+    sync(explosions, regExplosions);
+
+    // bomba / rpg nişanı
+    if (isGameStarted && currentWeapon === 'grenade' && unlockedWeapons.grenade) {
+        const t = getGrenadeTarget();
+        aim.position.set(t.x, 1.5, t.y);
+        aim.visible = true;
+        rpgAim.visible = false;
+    } else if (isGameStarted && currentWeapon === 'rpg' && unlockedWeapons.rpg) {
+        const t = getRpgTarget();
+        rpgAim.position.set(t.x, 1.5, t.y);
+        rpgAim.visible = true;
+        aim.visible = false;
+    } else {
+        aim.visible = false;
+        rpgAim.visible = false;
+    }
+
+    // patlama ışığı
+    let maxT = 0, ex0 = null;
+    for (let i = 0; i < explosions.length; i++) {
+        if (explosions[i].timer > maxT) { maxT = explosions[i].timer; ex0 = explosions[i]; }
+    }
+    if (ex0) { flashLight.position.set(ex0.x, 50, ex0.y); flashLight.intensity = (maxT / 40) * 3; }
+    else flashLight.intensity = 0;
+
+    renderer.render(scene, camera);
+}
+
+// =====================================================================
+//  BİRİNCİ ŞAHIS GÖRÜNÜMÜ
+// =====================================================================
+let viewMode = 'fps';
+try { const sv = localStorage.getItem('cephedeView'); if (sv === 'tps' || sv === 'fps') viewMode = sv; } catch (e) {}
+let lookPitch = 0;
+let hurtAlpha = 0, lastHpSeen = 100;
+
+scene.add(camera);
+camera.rotation.order = 'YXZ';
+
+// elde tutulan silah (kameraya bağlı)
+const fpsRig = new THREE.Group();
+fpsRig.position.set(4, -11, -18);
+camera.add(fpsRig);
+const fpsWeapons = {};
+['single', 'double', 'auto', 'minigun', 'grenade', 'rpg'].forEach(t => {
+    const w = buildWeapon(t);
+    w.position.set(0, 0, 0);
+    w.rotation.y = Math.PI / 2;
+    w.scale.setScalar(0.9);
+    w.traverse(o => { o.castShadow = false; o.receiveShadow = false; });
+    w.visible = false;
+    fpsWeapons[t] = w;
+    fpsRig.add(w);
+});
+const fpsFlash = new THREE.Mesh(new THREE.SphereGeometry(4, 8, 6), new THREE.MeshBasicMaterial({ color: 0xfff176, transparent: true, opacity: 0.9, fog: false }));
+fpsFlash.position.set(5, 0, -32);
+fpsFlash.visible = false;
+fpsRig.add(fpsFlash);
+
+// nişangâh + hasar efekti (HTML katmanı)
+const crosshair = document.createElement('div');
+crosshair.style.cssText = 'position:fixed;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;pointer-events:none;z-index:6;display:none;';
+crosshair.innerHTML = '<svg width="26" height="26" viewBox="0 0 26 26"><g stroke="#fff" stroke-width="2" stroke-linecap="round" style="filter:drop-shadow(0 0 2px #000)"><line x1="13" y1="2" x2="13" y2="8"/><line x1="13" y1="18" x2="13" y2="24"/><line x1="2" y1="13" x2="8" y2="13"/><line x1="18" y1="13" x2="24" y2="13"/></g><circle cx="13" cy="13" r="1.3" fill="#ff5252"/></svg>';
+document.body.appendChild(crosshair);
+const hurtEl = document.createElement('div');
+hurtEl.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:6;opacity:0;background:radial-gradient(ellipse at center, rgba(255,0,0,0) 45%, rgba(200,0,0,0.65) 100%);';
+document.body.appendChild(hurtEl);
+
+function gameplayActive() {
+    return isGameStarted && !isGameOver && !isPaused && wavePromptScreen.style.display !== 'flex' && startScreen.style.display === 'none';
+}
+
+function applyViewMode() {
+    const fps = viewMode === 'fps';
+    camera.fov = fps ? 78 : 50;
+    camera.near = fps ? 2 : 10;
+    camera.updateProjectionMatrix();
+    fpsRig.visible = fps;
+    const b = document.getElementById('btn-view');
+    if (b) b.textContent = fps ? 'Kamera: 1. Şahıs' : 'Kamera: 3. Şahıs';
+}
+applyViewMode();
+
+function requestLook() {
+    if (viewMode !== 'fps' || !canvas.requestPointerLock) return;
+    try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+}
+
+function toggleView() {
+    viewMode = (viewMode === 'fps') ? 'tps' : 'fps';
+    try { localStorage.setItem('cephedeView', viewMode); } catch (e) {}
+    applyViewMode();
+    camSnap = true;
+    if (viewMode === 'fps') { if (gameplayActive()) requestLook(); }
+    else if (document.pointerLockElement) document.exitPointerLock();
+}
+
+function togglePause() {
+    togglePauseBase();
+    if (!isPaused && viewMode === 'fps') requestLook();
+}
+
+function lookBy(dx, dy, k) {
+    k = (k || 1) * (1 - 0.55 * scopeAmt);
+    player.angle += dx * 0.0024 * k;
+    lookPitch -= dy * 0.0022 * k;
+    lookPitch = Math.max(-1.25, Math.min(1.25, lookPitch));
+}
+
+// ekrana bakış yönüne nişan al (yakındaki düşmana hafif yardım)
+function fpsAimTarget() {
+    const a = player.angle;
+    let best = null, bestDist = 1e9;
+    const cands = (mpActive && remote.active && remote.hp > 0) ? enemies.concat([remote]) : enemies;
+    for (let i = 0; i < cands.length; i++) {
+        const en = cands[i];
+        const ang = Math.atan2(en.y - player.y, en.x - player.x);
+        const diff = Math.abs(Math.atan2(Math.sin(ang - a), Math.cos(ang - a)));
+        const dist = Math.hypot(en.x - player.x, en.y - player.y);
+        const tol = 0.06 + Math.atan2(en.radius * 0.9, Math.max(dist, 1));
+        if (diff < tol && dist < bestDist) { bestDist = dist; best = en; }
+    }
+    if (best) return { x: best.x, y: best.y };
+    return { x: player.x + Math.cos(a) * 1000, y: player.y + Math.sin(a) * 1000 };
+}
+
+function lockGuard() {
+    if (document.pointerLockElement && !gameplayActive()) document.exitPointerLock();
+}
+document.addEventListener('pointerlockchange', () => {
+    if (!document.pointerLockElement && viewMode === 'fps' && gameplayActive()) togglePauseBase();
+});
+canvas.addEventListener('mousedown', () => {
+    if (viewMode === 'fps' && gameplayActive() && document.pointerLockElement !== canvas) requestLook();
+});
+
+// dokunmatik bakış (joystick ve butonların dışında kalan alan)
+let lookTouchId = null;
+const lookLast = { x: 0, y: 0 };
+canvas.addEventListener('touchstart', e => {
+    if (viewMode !== 'fps') return;
+    e.preventDefault();
+    if (lookTouchId !== null) return;
+    const t = e.changedTouches[0];
+    lookTouchId = t.identifier; lookLast.x = t.clientX; lookLast.y = t.clientY;
+}, { passive: false });
+window.addEventListener('touchmove', e => {
+    if (lookTouchId === null) return;
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        if (t.identifier === lookTouchId) {
+            lookBy(t.clientX - lookLast.x, t.clientY - lookLast.y, 2);
+            lookLast.x = t.clientX; lookLast.y = t.clientY;
+        }
+    }
+});
+function endLookTouch(e) {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === lookTouchId) lookTouchId = null;
+    }
+}
+window.addEventListener('touchend', endLookTouch);
+window.addEventListener('touchcancel', endLookTouch);
+
+function resizeCanvas() {
+    const w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+}
+window.addEventListener("resize", resizeCanvas);
+
+
+let isGameStarted = false;
+let isGameOver = false;
+let isFiring = false;
+let totalSpawnedEnemies = 0;
+let screenShakeTimer = 0;
+
+let lastSewageDamageTime = 0;
+
+const keys = {};
+const mouse = { x: WORLD_W / 2 + 100, y: WORLD_H / 2 };
+let currentWeapon = 'single';
+
+const joystickContainer = document.getElementById("joystick-container");
+const joystickKnob = document.getElementById("joystick-knob");
+let joystickActive = false;
+let joystickVector = { x: 0, y: 0 };
+let joystickTouchId = null;
+
+const grenadeJoystickContainer = document.getElementById("grenade-joystick-container");
+const grenadeJoystickKnob = document.getElementById("grenade-joystick-knob");
+let grenadeJoystickActive = false;
+let grenadeVector = { x: 0, y: 0 };
+let grenadeTouchId = null;
+let lastGrenadeTime = 0;
+const grenadeCooldown = 500;
+
+let lastRpgTime = 0;
+const rpgCooldown = 2500;
+
+const player = {
+    x: 100,
+    y: 100,
+    radius: 18,
+    speed: 4.5,
+    color: "#2196F3",
+    hp: 100,
+    maxHp: 100,
+    score: 0,
+    lastShot: 0,
+    fireRate: 200,
+    angle: 0,
+    walkCycle: 0
+};
+
+// =====================================================================
+//  KARAKTERLER, SİLAH YÜKSELTMELERİ, ÇOK OYUNCULU PUAN TABLOSU
+// =====================================================================
+const CHARS = {
+    sevket:   { name: 'Şevket',   color: 0x2196F3, css: '#2196F3', mul: 1,   price: 0 },
+    riza:     { name: 'Rıza',     color: 0x1b5e20, css: '#1b5e20', mul: 1.5, price: 170 },
+    yildiray: { name: 'Yıldıray', color: 0x800020, css: '#800020', mul: 2,   price: 230 }
+};
+const BASE_HP = 100, BASE_SPEED = 4.5;
+const UPG_MAX = 10, UPG_COST = 50, UPG_DMG = 15;
+const UPG_WEAPONS = [
+    ['single', 'Glock'], ['double', 'Desert Eagle'], ['auto', 'M-60'],
+    ['minigun', 'Minigun'], ['grenade', 'Bomba'], ['rpg', 'RPG']
+];
+const UPG_TIME_STEP = { grenade: 50, rpg: 250 };   // ms (seviye başına azalma)
+const MIN_COOLDOWN = 50;
+
+let charData = { owned: { sevket: true, riza: false, yildiray: false }, sel: 'sevket' };
+try {
+    const s = JSON.parse(localStorage.getItem('cephedeChars') || 'null');
+    if (s && s.owned) {
+        charData.owned = Object.assign(charData.owned, s.owned);
+        charData.owned.sevket = true;
+        if (CHARS[s.sel] && charData.owned[s.sel]) charData.sel = s.sel;
+    }
+} catch (e) {}
+
+let upg = {};
+UPG_WEAPONS.forEach(w => { upg[w[0]] = { d: 0, t: 0 }; });
+try {
+    const s = JSON.parse(localStorage.getItem('cephedeUpgrades') || 'null');
+    if (s) UPG_WEAPONS.forEach(w => {
+        const k = w[0];
+        if (s[k]) {
+            upg[k].d = Math.max(0, Math.min(UPG_MAX, parseInt(s[k].d) || 0));
+            upg[k].t = (k in UPG_TIME_STEP) ? Math.max(0, Math.min(UPG_MAX, parseInt(s[k].t) || 0)) : 0;
+        }
+    });
+} catch (e) {}
+
+function saveChars() { localStorage.setItem('cephedeChars', JSON.stringify(charData)); }
+function saveUpg() { localStorage.setItem('cephedeUpgrades', JSON.stringify(upg)); }
+
+// --- yükseltme etkileri ---
+function dmgBonus(w) {
+    if (mpActive || !upg[w]) return 0;
+    return UPG_DMG * upg[w].d;
+}
+function getGrenadeCd() {
+    if (mpActive) return MP_GRENADE_COOLDOWN;
+    return Math.max(MIN_COOLDOWN, grenadeCooldown - UPG_TIME_STEP.grenade * upg.grenade.t);
+}
+function getRpgCd() {
+    if (mpActive) return MP_GRENADE_COOLDOWN;
+    return Math.max(MIN_COOLDOWN, rpgCooldown - UPG_TIME_STEP.rpg * upg.rpg.t);
+}
+
+// --- karakter etkileri ---
+function setHumanColor(h, hex) {
+    h.bodyMat.color.setHex(hex);
+    h.armMat.color.copy(new THREE.Color(hex).multiplyScalar(0.72));
+}
+function applyCharacter() {
+    const c = CHARS[charData.sel] || CHARS.sevket;
+    player.maxHp = Math.round(BASE_HP * c.mul);
+    player.speed = BASE_SPEED * c.mul;
+    if (!isGameStarted) { player.hp = player.maxHp; healthEl.textContent = player.hp; }
+    setHumanColor(player3d, c.color);
+}
+function remoteColorFor(id) {
+    return id === 'sevket' ? 0xf44336 : (CHARS[id] ? CHARS[id].color : 0xf44336);
+}
+
+// --- menüler ---
+function refreshGoldLive() {
+    document.querySelectorAll('.gold-live').forEach(el => { el.textContent = gold; });
+}
+function openSubMenu(id) {
+    renderChars();
+    renderUpgrades();
+    refreshGoldLive();
+    document.getElementById(id).style.display = 'flex';
+}
+function closeSubMenus() {
+    document.getElementById('char-screen').style.display = 'none';
+    document.getElementById('upg-screen').style.display = 'none';
+    document.getElementById('set-screen').style.display = 'none';
+    resetAskToggle(false);
+}
+function resetAskToggle(on) {
+    const c = document.getElementById('reset-confirm'), b = document.getElementById('reset-ask-btn');
+    if (c) c.style.display = on ? 'block' : 'none';
+    if (b) b.style.display = on ? 'none' : '';
+}
+function resetAccount() {
+    ['cephedeGold', 'cephedeWeapons', 'cephedeHighScore', 'cephedeChars', 'cephedeUpgrades'].forEach(k => {
+        try { localStorage.removeItem(k); } catch (e) {}
+    });
+    if (mpActive) { try { mpCleanup(); } catch (e) {} }
+    location.reload();
+}
+function saveGold() {
+    localStorage.setItem('cephedeGold', gold);
+    goldEl.textContent = gold;
+    refreshGoldLive();
+}
+
+function renderChars() {
+    const list = document.getElementById('char-list');
+    if (!list) return;
+    list.innerHTML = '';
+    Object.keys(CHARS).forEach(id => {
+        const c = CHARS[id];
+        const owned = !!charData.owned[id];
+        const selected = charData.sel === id;
+        const card = document.createElement('div');
+        card.className = 'char-card' + (selected ? ' selected' : '');
+        const hp = Math.round(BASE_HP * c.mul);
+        const spd = (BASE_SPEED * c.mul).toFixed(2).replace(/\.?0+$/, '');
+        const pct = Math.round((c.mul - 1) * 100);
+        card.innerHTML =
+            '<div class="char-figure">' +
+              '<div class="leg" style="left:11px"></div><div class="leg" style="left:30px"></div>' +
+              '<div class="arm" style="left:0;background:' + c.css + ';filter:brightness(0.72)"></div>' +
+              '<div class="arm" style="left:45px;background:' + c.css + ';filter:brightness(0.72)"></div>' +
+              '<div class="body" style="background:' + c.css + '"></div>' +
+              '<div class="head"></div><div class="cap"></div>' +
+            '</div>' +
+            '<div class="char-name">' + c.name + '</div>' +
+            '<div class="char-stat">Can: <b>' + hp + '</b>' + (pct ? ' (+%' + pct + ')' : '') + '</div>' +
+            '<div class="char-stat">Yürüme hızı: <b>' + spd + '</b>' + (pct ? ' (+%' + pct + ')' : '') + '</div>';
+        const btn = document.createElement('button');
+        btn.className = 'act-btn';
+        if (selected) { btn.textContent = '✓ Seçili'; btn.classList.add('on'); btn.disabled = true; }
+        else if (owned) { btn.textContent = 'Seç'; btn.onclick = () => selectCharacter(id); }
+        else {
+            btn.textContent = 'Satın al (' + c.price + '🪙)';
+            btn.classList.add('buy');
+            if (gold < c.price) btn.classList.add('dis');
+            btn.onclick = () => buyCharacter(id);
+        }
+        card.appendChild(btn);
+        list.appendChild(card);
+    });
+}
+function buyCharacter(id) {
+    const c = CHARS[id];
+    if (!c || charData.owned[id] || gold < c.price) return;
+    gold -= c.price;
+    charData.owned[id] = true;
+    charData.sel = id;
+    saveChars(); saveGold();
+    applyCharacter();
+    mpSendProfile(); mpRenderScoreboard();
+    renderChars();
+}
+function selectCharacter(id) {
+    if (!CHARS[id] || !charData.owned[id]) return;
+    charData.sel = id;
+    saveChars();
+    applyCharacter();
+    mpSendProfile(); mpRenderScoreboard();
+    renderChars();
+}
+
+function renderUpgrades() {
+    const list = document.getElementById('upg-list');
+    if (!list) return;
+    list.innerHTML = '';
+    UPG_WEAPONS.forEach(w => {
+        const key = w[0], name = w[1];
+        const owned = !!unlockedWeapons[key];
+        const card = document.createElement('div');
+        card.className = 'upg-card';
+        const title = document.createElement('div');
+        title.className = 'upg-title';
+        title.textContent = name + (owned ? '' : ' 🔒');
+        card.appendChild(title);
+        card.appendChild(upgRow(key, 'd', owned));
+        if (key in UPG_TIME_STEP) card.appendChild(upgRow(key, 't', owned));
+        list.appendChild(card);
+    });
+}
+function upgRow(key, kind, owned) {
+    const lvl = upg[key][kind];
+    const row = document.createElement('div');
+    row.className = 'upg-row';
+    const info = document.createElement('div');
+    info.className = 'upg-info';
+    let label, cur;
+    if (kind === 'd') {
+        label = 'Hasar';
+        cur = '+' + (UPG_DMG * lvl) + ' hasar <span style="color:#888">(her seviye +' + UPG_DMG + ')</span>';
+    } else {
+        label = 'Süre';
+        const step = UPG_TIME_STEP[key];
+        cur = '-' + (step * lvl) + ' ms <span style="color:#888">(her seviye -' + step + ' ms)</span>';
+    }
+    let pips = '';
+    for (let i = 0; i < UPG_MAX; i++) pips += '<div class="pip' + (i < lvl ? ' on' : '') + '"></div>';
+    info.innerHTML = '<b>' + label + '</b> • Seviye ' + lvl + '/' + UPG_MAX + '<br>' + cur + '<div class="pips">' + pips + '</div>';
+    const btn = document.createElement('button');
+    btn.className = 'act-btn buy';
+    if (lvl >= UPG_MAX) { btn.textContent = 'MAKS'; btn.disabled = true; }
+    else if (!owned) { btn.textContent = 'Silah kilitli'; btn.classList.add('dis'); }
+    else {
+        btn.textContent = 'Yükselt (' + UPG_COST + '🪙)';
+        if (gold < UPG_COST) btn.classList.add('dis');
+        btn.onclick = () => buyUpgrade(key, kind);
+    }
+    row.appendChild(info);
+    row.appendChild(btn);
+    return row;
+}
+function buyUpgrade(key, kind) {
+    if (!unlockedWeapons[key]) return;
+    if (kind === 't' && !(key in UPG_TIME_STEP)) return;
+    if (upg[key][kind] >= UPG_MAX || gold < UPG_COST) return;
+    gold -= UPG_COST;
+    upg[key][kind]++;
+    saveUpg(); saveGold();
+    mpSendProfile(); mpRenderScoreboard();
+    renderUpgrades();
+}
+
+// --- çok oyunculu: profil paylaşımı ve puan tablosu ---
+function mpSendProfile() {
+    if (typeof mpSend === 'function' && mpConn) mpSend({ t: 'p', g: gold, c: charData.sel });
+}
+function mpApplyRemoteProfile(d) {
+    if (!d) return;
+    const id = CHARS[d.c] ? d.c : 'sevket';
+    remote.char = id;
+    remote.gold = Math.max(0, parseInt(d.g) || 0);
+    const newMax = Math.round(BASE_HP * CHARS[id].mul);
+    const wasFull = !isGameStarted || remote.hp >= remote.maxHp;
+    remote.maxHp = newMax;
+    if (wasFull) {
+        remote.hp = newMax;
+        const el = document.getElementById('opp-hp');
+        if (el) el.textContent = newMax;
+    }
+    setHumanColor(remote3d, remoteColorFor(id));
+    mpRenderScoreboard();
+}
+function mpRenderScoreboard() {
+    const el = document.getElementById('mp-scoreboard');
+    if (!el) return;
+    if (!(mpActive && mpConnected)) { el.style.display = 'none'; return; }
+    const rows = [
+        { me: true,  name: 'Sen',   ch: (CHARS[charData.sel] || CHARS.sevket).name, g: gold },
+        { me: false, name: 'Rakip', ch: (CHARS[remote.char] || CHARS.sevket).name, g: remote.gold || 0 }
+    ];
+    rows.sort((a, b) => b.g - a.g);
+    const medals = ['🥇', '🥈'];
+    let html = '<div class="sb-title">PUAN TABLOSU • ALTIN</div>';
+    rows.forEach((r, i) => {
+        html += '<div class="sb-row' + (r.me ? ' me' : '') + '"><span>' + (medals[i] || '') + ' ' + r.name +
+                ' <span style="color:#999">(' + r.ch + ')</span></span><span class="sb-gold">🪙 ' + r.g + '</span></div>';
+    });
+    el.innerHTML = html;
+    el.style.display = 'block';
+}
+
+let obstacles = [];
+let sewagePools = [];
+let movingCars = [];
+
+function initMapObjectsLogic() {
+    obstacles = [];
+    sewagePools = [];
+    movingCars = [];
+
+    if (currentMap === 'park') {
+        obstacles = [
+            { type: 'wall', x: WORLD_W * 0.25, y: WORLD_H * 0.3, w: 140, h: 25, height3d: 50 },
+            { type: 'wall', x: WORLD_W * 0.7, y: WORLD_H * 0.6, w: 25, h: 160, height3d: 50 },
+            { type: 'tree', x: WORLD_W * 0.2, y: WORLD_H * 0.75, radius: 25, height3d: 70 },
+            { type: 'tree', x: WORLD_W * 0.75, y: WORLD_H * 0.25, radius: 30, height3d: 80 },
+            { type: 'tree', x: WORLD_W * 0.5, y: WORLD_H * 0.15, radius: 20, height3d: 60 }
+        ];
+    } else if (currentMap === 'kanal') {
+        obstacles = [
+            { type: 'wall', x: WORLD_W * 0.3, y: WORLD_H * 0.2, w: 60, h: 200, height3d: 40 },
+            { type: 'wall', x: WORLD_W * 0.6, y: WORLD_H * 0.5, w: 200, h: 60, height3d: 40 },
+            { type: 'wall', x: WORLD_W * 0.15, y: WORLD_H * 0.7, w: 100, h: 40, height3d: 40 }
+        ];
+        sewagePools = [
+            { cx: WORLD_W * 0.25, cy: WORLD_H * 0.4, rx: 70, ry: 50 },
+            { cx: WORLD_W * 0.7, cy: WORLD_H * 0.25, rx: 90, ry: 60 }
+        ];
+    } else if (currentMap === 'sehir') {
+        obstacles = [
+            { type: 'wall', x: WORLD_W * 0.1, y: WORLD_H * 0.1, w: 120, h: 120, height3d: 90 },
+            { type: 'wall', x: WORLD_W * 0.7, y: WORLD_H * 0.1, w: 140, h: 100, height3d: 90 },
+            { type: 'wall', x: WORLD_W * 0.4, y: WORLD_H * 0.7, w: 180, h: 90, height3d: 90 }
+        ];
+        movingCars = [
+            { x: 100, y: WORLD_H * 0.4, w: 60, h: 30, vx: 3, vy: 0, color: '#e91e63', lastHitTime: 0 },
+            { x: WORLD_W - 200, y: WORLD_H * 0.6, w: 60, h: 30, vx: -3, vy: 0, color: '#ffeb3b', lastHitTime: 0 }
+        ];
+    }
+    if (mpActive) movingCars = [];   // çok oyunculuda araçlar senkron olmadığı için kapalı
+}
+function initMapObjects() {
+    initMapObjectsLogic();
+    buildStaticScene();
+}
+initMapObjects();
+resizeCanvas();
+
+let bullets = [];
+let rpgRockets = [];
+let enemies = [];
+let coins = [];
+let healthPacks = [];
+let explosions = [];
+
+function startGame() {
+    initAudio();
+    isPaused = false;
+    pauseScreen.style.display = "none";
+    wavePromptScreen.style.display = "none";
+    const pauseBtn = document.getElementById('btn-pause');
+    if (pauseBtn) {
+        pauseBtn.textContent = "Durdur";
+        pauseBtn.classList.remove('active-state');
+    }
+    startScreen.style.display = "none";
+    isGameStarted = true;
+    requestLook();
+
+    if (currentGameMode === 'wave') {
+        totalWaves = parseInt(document.getElementById('wave-input').value) || 3;
+        currentWave = 1;
+        pendingWaveGold = 0;
+        document.getElementById('wave-stat').style.display = 'flex';
+        document.getElementById('total-wave-display').textContent = totalWaves;
+        document.getElementById('current-wave-display').textContent = currentWave;
+        enemiesToSpawnInWave = 8 + (currentWave * 4);
+        enemiesSpawnedCount = 0;
+    } else {
+        document.getElementById('wave-stat').style.display = 'none';
+    }
+
+    resetGame();
+}
+
+function selectWeapon(type) {
+    if (mpActive && !MP_WEAPONS[type]) return;
+    if (!mpActive && type === 'double' && !unlockedWeapons.double) {
+        if (gold >= 30) {
+            gold -= 30; unlockedWeapons.double = true;
+            saveAndUnlock('double', "Desert Eagle");
+        } else return;
+    }
+    if (!mpActive && type === 'auto' && !unlockedWeapons.auto) {
+        if (gold >= 50) {
+            gold -= 50; unlockedWeapons.auto = true;
+            saveAndUnlock('auto', "M-60");
+        } else return;
+    }
+    if (!mpActive && type === 'minigun' && !unlockedWeapons.minigun) {
+        if (gold >= 100) {
+            gold -= 100; unlockedWeapons.minigun = true;
+            saveAndUnlock('minigun', "Minigun");
+        } else return;
+    }
+    if (!mpActive && type === 'grenade' && !unlockedWeapons.grenade) {
+        if (gold >= 70) {
+            gold -= 70; unlockedWeapons.grenade = true;
+            saveAndUnlock('grenade', "Bomba");
+            document.getElementById('grenade-joystick-container').style.display = 'flex';
+        } else return;
+    }
+    if (!mpActive && type === 'rpg' && !unlockedWeapons.rpg) {
+        if (gold >= 250) {
+            gold -= 250; unlockedWeapons.rpg = true;
+            saveAndUnlock('rpg', "RPG");
+            document.getElementById('grenade-joystick-container').style.display = 'flex';
+        } else return;
+    }
+
+    currentWeapon = type;
+    document.querySelectorAll('.weapon-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + type).classList.add('active');
+
+    if (type === 'minigun') player.fireRate = 60;
+    else if (type === 'auto') player.fireRate = 80;
+    else player.fireRate = 200;
+    if (mpActive && MP_WEAPONS[type]) player.fireRate = MP_WEAPONS[type].rate;
+}
+
+function cycleWeapon(delta) {
+    const weaponOrder = ['single', 'double', 'auto', 'minigun', 'grenade', 'rpg'];
+    const available = weaponOrder.filter(w => mpActive ? MP_WEAPONS[w] : unlockedWeapons[w]);
+    if (available.length <= 1) return;
+    let idx = available.indexOf(currentWeapon);
+    if (idx === -1) idx = 0;
+    if (delta > 0) {
+        idx = (idx + 1) % available.length;
+    } else {
+        idx = (idx - 1 + available.length) % available.length;
+    }
+    selectWeapon(available[idx]);
+}
+
+window.addEventListener('wheel', e => {
+    if (!gameplayActive()) return;
+    e.preventDefault();
+    cycleWeapon(e.deltaY > 0 ? 1 : -1);
+}, { passive: false });
+
+function saveAndUnlock(key, name) {
+    localStorage.setItem("cephedeGold", gold);
+    localStorage.setItem("cephedeWeapons", JSON.stringify(unlockedWeapons));
+    goldEl.textContent = gold;
+    const btn = document.getElementById('btn-' + key);
+    btn.textContent = name;
+    btn.classList.remove('locked');
+}
+
+window.addEventListener("keydown", e => {
+    if (e.target && e.target.tagName === 'INPUT') return;
+    if (e.key === "p" || e.key === "P") { togglePause(); return; }
+    if (e.key === "c" || e.key === "C") { toggleView(); return; }
+    if (e.key === "n" || e.key === "N") { scopeKey = true; return; }
+    keys[e.key.toLowerCase()] = true;
+});
+window.addEventListener("keyup", e => {
+    if (e.key === "n" || e.key === "N") scopeKey = false;
+    keys[e.key.toLowerCase()] = false;
+});
+
+canvas.addEventListener("mousemove", e => {
+    screenMouse.x = e.clientX;
+    screenMouse.y = e.clientY;
+    if (viewMode === 'fps' && document.pointerLockElement === canvas && gameplayActive()) {
+        lookBy(e.movementX || 0, e.movementY || 0, 1);
+    }
+});
+
+canvas.addEventListener("mousedown", e => {
+    initAudio();
+    if (e.button === 2) { scopeMouse = true; return; }
+    if (e.target === canvas) { isFiring = true; handleShooting(); }
+});
+window.addEventListener("mouseup", e => {
+    if (e.button === 2) scopeMouse = false;
+    else isFiring = false;
+});
+window.addEventListener("contextmenu", e => e.preventDefault());
+
+const fireBtn = document.getElementById("fire-btn");
+if (fireBtn) {
+    fireBtn.addEventListener("touchstart", e => { e.preventDefault(); isFiring = true; handleShooting(); });
+    fireBtn.addEventListener("touchend", () => isFiring = false);
+    fireBtn.addEventListener("mousedown", e => { e.preventDefault(); isFiring = true; handleShooting(); });
+}
+
+function handleShooting() {
+    if (!isGameStarted || isGameOver || isPaused || wavePromptScreen.style.display === "flex") return;
+
+    if (currentWeapon === 'grenade') {
+        throwGrenade();
+        return;
+    }
+    if (currentWeapon === 'rpg') {
+        fireRpg();
+        return;
+    }
+
+    if (viewMode === 'fps') {
+        const ft = fpsAimTarget();
+        shootBullet(player.x, player.y, ft.x, ft.y, false);
+        return;
+    }
+
+    let targetX = mouse.x;
+    let targetY = mouse.y;
+
+    if (enemies.length > 0) {
+        let nearest = enemies[0];
+        let minDist = Math.hypot(enemies[0].x - player.x, enemies[0].y - player.y);
+        enemies.forEach(en => {
+            const d = Math.hypot(en.x - player.x, en.y - player.y);
+            if (d < minDist) { minDist = d; nearest = en; }
+        });
+        targetX = nearest.x;
+        targetY = nearest.y;
+    }
+
+    shootBullet(player.x, player.y, targetX, targetY, false);
+}
+
+function fireRpg() {
+    const now = Date.now();
+    if (now - lastRpgTime < getRpgCd()) return;
+    lastRpgTime = now;
+
+    const target = getRpgTarget();
+    playRpgWhooshSound();
+
+    rpgRockets.push({
+        startX: player.x,
+        startY: player.y,
+        x: player.x,
+        y: player.y,
+        targetX: target.x,
+        targetY: target.y,
+        speed: 12
+    });
+
+    if (mpActive) mpSend({ t: 'rpg_fire', sx: player.x, sy: player.y, tx: target.x, ty: target.y });
+}
+
+function throwGrenade() {
+    const now = Date.now();
+    if (now - lastGrenadeTime < getGrenadeCd()) return;
+    lastGrenadeTime = now;
+
+    const gt0 = getGrenadeTarget();
+    let targetX = gt0.x;
+    let targetY = gt0.y;
+
+    targetX = Math.max(50, Math.min(WORLD_W - 50, targetX));
+    targetY = Math.max(50, Math.min(WORLD_H - 50, targetY));
+
+    explosions.push({ x: targetX, y: targetY, radius: 70, timer: 40 });
+    playExplosionSound();
+    screenShakeTimer = 20;
+    if (mpActive) mpSend({ t: 'boom', x: targetX, y: targetY });
+
+    enemies.forEach(en => {
+        if (Math.hypot(en.x - targetX, en.y - targetY) < 70 + en.radius) {
+            en.hp -= 200 + dmgBonus('grenade');
+        }
+    });
+}
+
+function shootBullet(fromX, fromY, targetX, targetY, isEnemy, isBoss = false) {
+    const n0 = bullets.length;
+    shootBulletCore(fromX, fromY, targetX, targetY, isEnemy, isBoss);
+    if (!isEnemy && mpActive && bullets.length > n0) {
+        const w = MP_WEAPONS[currentWeapon] || MP_WEAPONS.single;
+        const sent = [];
+        for (let i = n0; i < bullets.length; i++) {
+            const b = bullets[i];
+            b.damage = w.dmg;
+            sent.push({ x: b.x, y: b.y, vx: b.vx, vy: b.vy, r: b.radius });
+        }
+        mpSend({ t: 'shot', b: sent, d: w.dmg, w: currentWeapon });
+    }
+}
+
+function shootBulletCore(fromX, fromY, targetX, targetY, isEnemy, isBoss = false) {
+    const now = Date.now();
+    if (!isEnemy && now - player.lastShot < player.fireRate) return;
+    if (!isEnemy) {
+        player.lastShot = now;
+        playShootSound();
+    }
+
+    const angle = Math.atan2(targetY - fromY, targetX - fromX);
+
+    if (!isEnemy && currentWeapon === 'minigun') {
+        const perpAngle = angle + Math.PI / 2;
+        const spacing = 7;
+        for (let i = -1.5; i <= 1.5; i++) {
+            let offsetX = Math.cos(perpAngle) * (i * spacing);
+            let offsetY = Math.sin(perpAngle) * (i * spacing);
+            bullets.push({
+                x: fromX + offsetX, y: fromY + offsetY,
+                vx: Math.cos(angle) * 11, vy: Math.sin(angle) * 11,
+                radius: 4, color: "#00e676", isEnemy: false, damage: 18 + dmgBonus('minigun')
+            });
+        }
+    } else if (!isEnemy && currentWeapon === 'double') {
+        const perpAngle = angle + Math.PI / 2;
+        const offset = 14;
+        bullets.push(
+            { x: fromX + Math.cos(perpAngle) * offset, y: fromY + Math.sin(perpAngle) * offset, vx: Math.cos(angle) * 9, vy: Math.sin(angle) * 9, radius: 5, color: "#ffeb3b", isEnemy: false, damage: 20 + dmgBonus('double') },
+            { x: fromX - Math.cos(perpAngle) * offset, y: fromY - Math.sin(perpAngle) * offset, vx: Math.cos(angle) * 9, vy: Math.sin(angle) * 9, radius: 5, color: "#ffeb3b", isEnemy: false, damage: 20 + dmgBonus('double') }
+        );
+    } else {
+        bullets.push({
+            x: fromX, y: fromY,
+            vx: Math.cos(angle) * (isEnemy ? (isBoss ? 6 : 5) : 9),
+            vy: Math.sin(angle) * (isEnemy ? (isBoss ? 6 : 5) : 9),
+            radius: isBoss ? 10 : 5,
+            color: isEnemy ? (isBoss ? "#e91e63" : "#ff5252") : "#ffeb3b",
+            isEnemy: isEnemy,
+            damage: isEnemy ? (isBoss ? 30 : 10) : 25 + dmgBonus(currentWeapon)
+        });
+    }
+}
+
+function handleJoystickStart(clientX, clientY, touchId = null) {
+    joystickActive = true;
+    joystickTouchId = touchId;
+    updateJoystickPosition(clientX, clientY);
+}
+
+function updateJoystickPosition(clientX, clientY) {
+    const rect = joystickContainer.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const deltaX = clientX - centerX;
+    const deltaY = clientY - centerY;
+    const distance = Math.hypot(deltaX, deltaY);
+    const maxRadius = rect.width / 2;
+    const angle = Math.atan2(deltaY, deltaX);
+    const limitedDistance = Math.min(distance, maxRadius);
+    const knobX = Math.cos(angle) * limitedDistance;
+    const knobY = Math.sin(angle) * limitedDistance;
+    joystickKnob.style.transform = `translate(${knobX}px, ${knobY}px)`;
+    joystickVector = { x: knobX / maxRadius, y: knobY / maxRadius };
+}
+
+function resetJoystick() {
+    joystickActive = false;
+    joystickTouchId = null;
+    joystickVector = { x: 0, y: 0 };
+    joystickKnob.style.transform = `translate(0px, 0px)`;
+}
+
+function handleGrenadeJoystickStart(clientX, clientY, touchId = null) {
+    grenadeJoystickActive = true;
+    grenadeTouchId = touchId;
+    updateGrenadeJoystickPosition(clientX, clientY);
+}
+
+function updateGrenadeJoystickPosition(clientX, clientY) {
+    const rect = grenadeJoystickContainer.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const deltaX = clientX - centerX;
+    const deltaY = clientY - centerY;
+    const distance = Math.hypot(deltaX, deltaY);
+    const maxRadius = rect.width / 2;
+    const angle = Math.atan2(deltaY, deltaX);
+    const limitedDistance = Math.min(distance, maxRadius);
+    const knobX = Math.cos(angle) * limitedDistance;
+    const knobY = Math.sin(angle) * limitedDistance;
+    grenadeJoystickKnob.style.transform = `translate(${knobX}px, ${knobY}px)`;
+    grenadeVector = { x: knobX / maxRadius, y: knobY / maxRadius };
+}
+
+function resetGrenadeJoystick() {
+    grenadeJoystickActive = false;
+    grenadeTouchId = null;
+    grenadeVector = { x: 0, y: 0 };
+    grenadeJoystickKnob.style.transform = `translate(0px, 0px)`;
+}
+
+joystickContainer.addEventListener("touchstart", e => { e.preventDefault(); const t = e.changedTouches[0]; handleJoystickStart(t.clientX, t.clientY, t.identifier); });
+window.addEventListener("touchmove", e => { if (!joystickActive) return; for (let i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === joystickTouchId) { updateJoystickPosition(e.changedTouches[i].clientX, e.changedTouches[i].clientY); break; } } });
+window.addEventListener("touchend", e => { for (let i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === joystickTouchId) { resetJoystick(); break; } } });
+joystickContainer.addEventListener("mousedown", e => { e.preventDefault(); handleJoystickStart(e.clientX, e.clientY); });
+window.addEventListener("mousemove", e => { if (joystickActive && joystickTouchId === null) updateJoystickPosition(e.clientX, e.clientY); });
+window.addEventListener("mouseup", () => { if (joystickActive && joystickTouchId === null) resetJoystick(); });
+
+grenadeJoystickContainer.addEventListener("touchstart", e => { e.preventDefault(); const t = e.changedTouches[0]; handleGrenadeJoystickStart(t.clientX, t.clientY, t.identifier); });
+window.addEventListener("touchmove", e => { if (!grenadeJoystickActive) return; for (let i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === grenadeTouchId) { updateGrenadeJoystickPosition(e.changedTouches[i].clientX, e.changedTouches[i].clientY); break; } } });
+window.addEventListener("touchend", e => { for (let i = 0; i < e.changedTouches.length; i++) { if (e.changedTouches[i].identifier === grenadeTouchId) { resetGrenadeJoystick(); break; } } });
+grenadeJoystickContainer.addEventListener("mousedown", e => { e.preventDefault(); handleGrenadeJoystickStart(e.clientX, e.clientY); });
+window.addEventListener("mousemove", e => { if (grenadeJoystickActive && grenadeTouchId === null) updateGrenadeJoystickPosition(e.clientX, e.clientY); });
+window.addEventListener("mouseup", () => { if (grenadeJoystickActive && grenadeTouchId === null) resetGrenadeJoystick(); });
+
+let lastMegaSpawn = 0;
+function spawnEnemy() {
+    if (!isGameStarted || isGameOver || isPaused || wavePromptScreen.style.display === "flex" || enemies.length >= 7) return;
+    if (currentGameMode === 'mp') return;
+    if (currentGameMode === 'ultra') {
+        if (enemies.length >= 3 || Date.now() - lastMegaSpawn < 6000) return;
+        lastMegaSpawn = Date.now();
+    }
+
+    if (currentGameMode === 'wave') {
+        if (enemiesSpawnedCount >= enemiesToSpawnInWave) return;
+        enemiesSpawnedCount++;
+    }
+
+    totalSpawnedEnemies++;
+    const isMega = (currentGameMode === 'ultra');
+    const isBoss = isMega || ((currentGameMode === 'hard') ? true : (currentGameMode === 'wave' ? (enemiesSpawnedCount % 5 === 0) : (totalSpawnedEnemies % 20 === 0)));
+    const radius = isMega ? 80 : (isBoss ? 54 : 18);
+    let x, y;
+    if (Math.random() < 0.5) {
+        x = Math.random() < 0.5 ? -radius : WORLD_W + radius;
+        y = Math.random() * WORLD_H;
+    } else {
+        x = Math.random() * WORLD_W;
+        y = Math.random() < 0.5 ? -radius : WORLD_H + radius;
+    }
+
+    let baseHp = isMega ? 1200 : (isBoss ? 345 : 100);
+    enemies.push({
+        x: x, y: y, radius: radius,
+        speed: isMega ? 1.1 : (isBoss ? 1.4 : 2),
+        color: isMega ? "#000000" : (isBoss ? "#8e24aa" : "#f44336"),
+        hp: baseHp, maxHp: baseHp,
+        lastDamageTime: 0,
+        lastShot: isMega ? Date.now() : 0, angle: 0, walkCycle: 0, isBoss: isBoss, isMega: isMega
+    });
+}
+setInterval(spawnEnemy, 1800);
+
+function resetGame() {
+    player.x = WORLD_W / 2;
+    player.y = WORLD_H / 2;
+    player.hp = player.maxHp;
+    player.score = 0;
+    player.walkCycle = 0;
+    camSnap = true;
+    player.angle = -Math.PI / 2;
+    lastMegaSpawn = Date.now() - 3000;
+    if (mpActive) {
+        const hostSide = (mpRole === 'host');
+        player.x = hostSide ? 100 : WORLD_W - 100;
+        player.y = WORLD_H / 2;
+        player.angle = hostSide ? 0 : Math.PI;
+        remote.active = true;
+        remote.x = remote.tx = hostSide ? WORLD_W - 100 : 100;
+        remote.y = remote.ty = WORLD_H / 2;
+        remote.angle = remote.tangle = hostSide ? Math.PI : 0;
+        remote.hp = remote.maxHp; remote.w = 'single'; remote.walk = 0; remote.lastShot = 0;
+        document.getElementById('opp-hp').textContent = remote.maxHp;
+        selectWeapon(MP_WEAPONS[currentWeapon] ? currentWeapon : 'single');
+    }
+    lookPitch = 0;
+    hurtAlpha = 0;
+    lastHpSeen = player.maxHp;
+    totalSpawnedEnemies = 0;
+    lastGrenadeTime = 0;
+    lastRpgTime = 0;
+    lastSewageDamageTime = 0;
+    
+    bullets = [];
+    rpgRockets = [];
+    enemies = [];
+    coins = [];
+    healthPacks = [];
+    explosions = [];
+    
+    healthEl.textContent = player.hp;
+    scoreEl.textContent = player.score;
+    goldEl.textContent = gold;
+    isGameOver = false;
+}
+
+function checkObstacleCollision(nx, ny, radius) {
+    for (let obs of obstacles) {
+        if (obs.type === 'wall') {
+            let closestX = Math.max(obs.x, Math.min(nx, obs.x + obs.w));
+            let closestY = Math.max(obs.y, Math.min(ny, obs.y + obs.h));
+            let dist = Math.hypot(nx - closestX, ny - closestY);
+            if (dist < radius) return true;
+        } else if (obs.type === 'tree') {
+            let dist = Math.hypot(nx - obs.x, ny - obs.y);
+            if (dist < radius + obs.radius * 0.6) return true;
+        }
+    }
+    return false;
+}
+
+function update() {
+    if (!isGameStarted || isGameOver || isPaused || wavePromptScreen.style.display === "flex") return;
+
+    if (unlockedWeapons.grenade) {
+        const grenadeBtn = document.getElementById('btn-grenade');
+        if (grenadeBtn) {
+            const timeLeft = getGrenadeCd() - (Date.now() - lastGrenadeTime);
+            if (timeLeft > 0) {
+                grenadeBtn.textContent = `Bomba (${(timeLeft / 1000).toFixed(1)}s)`;
+            } else {
+                grenadeBtn.textContent = "Bomba";
+            }
+        }
+    }
+
+    if (unlockedWeapons.rpg) {
+        const rpgBtn = document.getElementById('btn-rpg');
+        if (rpgBtn) {
+            const timeLeft = getRpgCd() - (Date.now() - lastRpgTime);
+            if (timeLeft > 0) {
+                rpgBtn.textContent = `RPG (${(timeLeft / 1000).toFixed(1)}s)`;
+            } else {
+                rpgBtn.textContent = "RPG";
+            }
+        }
+    }
+
+    if (screenShakeTimer > 0) screenShakeTimer--;
+
+    if (isFiring && (currentWeapon === 'auto' || currentWeapon === 'minigun')) {
+        handleShooting();
+    }
+
+    const now = Date.now();
+
+    movingCars.forEach(car => {
+        car.x += car.vx;
+        if (car.x < 0 || car.x + car.w > WORLD_W) {
+            car.vx *= -1;
+        }
+
+        if (player.x > car.x && player.x < car.x + car.w && player.y > car.y && player.y < car.y + car.h) {
+            player.hp -= 45;
+            healthEl.textContent = Math.max(0, player.hp);
+            playHitSound();
+            screenShakeTimer = 15;
+            car.x += car.vx * 15; 
+        }
+
+        enemies.forEach(en => {
+            if (en.x > car.x && en.x < car.x + car.w && en.y > car.y && en.y < car.y + car.h) {
+                if (!en.carHitTime || now - en.carHitTime > 600) {
+                    en.hp -= 45;
+                    en.carHitTime = now;
+                }
+            }
+        });
+    });
+
+    if (currentMap === 'kanal') {
+        let playerInSewage = false;
+        sewagePools.forEach(pool => {
+            let dx = (player.x - pool.cx) / pool.rx;
+            let dy = (player.y - pool.cy) / pool.ry;
+            if (dx * dx + dy * dy <= 1) {
+                playerInSewage = true;
+            }
+        });
+
+        if (playerInSewage && now - lastSewageDamageTime >= 2000) {
+            player.hp -= 5;
+            healthEl.textContent = Math.max(0, player.hp);
+            playHitSound();
+            lastSewageDamageTime = now;
+        }
+
+        enemies.forEach(en => {
+            let enInSewage = false;
+            sewagePools.forEach(pool => {
+                let dx = (en.x - pool.cx) / pool.rx;
+                let dy = (en.y - pool.cy) / pool.ry;
+                if (dx * dx + dy * dy <= 1) {
+                    enInSewage = true;
+                }
+            });
+
+            if (enInSewage) {
+                if (!en.lastDamageTime) en.lastDamageTime = now;
+                if (now - en.lastDamageTime >= 2000) {
+                    en.hp -= 5;
+                    en.lastDamageTime = now;
+                }
+            }
+        });
+    }
+
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        if (enemies[i].hp <= 0) {
+            const en = enemies[i];
+            if (en.isMega) {
+                for (let k = 0; k < 25; k++) {
+                    const angle = (Math.PI * 2 / 25) * k;
+                    const dist = 40 + Math.random() * 60;
+                    coins.push({ x: en.x + Math.cos(angle) * dist, y: en.y + Math.sin(angle) * dist, radius: 8 });
+                }
+                healthPacks.push({ x: en.x + 20, y: en.y, radius: 12, healValue: 60 });
+                player.score += 200;
+            } else if (en.isBoss) {
+                if (currentGameMode !== 'wave') {
+                    for (let k = 0; k < 10; k++) {
+                        const angle = (Math.PI * 2 / 10) * k;
+                        const dist = 25 + Math.random() * 20;
+                        coins.push({ x: en.x + Math.cos(angle) * dist, y: en.y + Math.sin(angle) * dist, radius: 8 });
+                    }
+                }
+                healthPacks.push({ x: en.x + 15, y: en.y, radius: 12, healValue: 40 });
+                player.score += 50;
+            } else {
+                if (Math.random() < 0.4) {
+                    healthPacks.push({ x: en.x, y: en.y, radius: 12, healValue: 25 });
+                }
+                player.score += 10;
+            }
+
+            if (currentGameMode !== 'wave' && !en.isBoss) {
+                coins.push({ x: en.x, y: en.y, radius: 8 });
+            }
+
+            enemies.splice(i, 1);
+            scoreEl.textContent = player.score;
+        }
+    }
+
+    if (currentGameMode === 'wave' && enemiesSpawnedCount >= enemiesToSpawnInWave && enemies.length === 0) {
+        pendingWaveGold += 60;
+        if (currentWave >= totalWaves) {
+            gold += pendingWaveGold;
+            goldEl.textContent = gold;
+            localStorage.setItem("cephedeGold", gold);
+            isGameOver = true;
+            screenTitle.textContent = "TEBRİKLER! DALGALARI BİTİRDİN!";
+            screenScore.innerHTML = "Toplam Kazanılan Altın: +" + pendingWaveGold + " 🪙 | Skorun: " + player.score;
+            startScreen.style.display = "flex";
+            showMenuPage('main', true);
+            return;
+        } else {
+            wavePromptScreen.style.display = "flex";
+            return;
+        }
+    }
+
+    for (let i = explosions.length - 1; i >= 0; i--) {
+        explosions[i].timer--;
+        if (explosions[i].timer <= 0) explosions.splice(i, 1);
+    }
+
+    if (player.hp <= 0) {
+        isGameOver = true;
+        player.hp = 0;
+        healthEl.textContent = 0;
+        playGameOverSound();
+        if (mpActive) { mpOnLocalDeath(); return; }
+
+        if (currentGameMode === 'wave') {
+            pendingWaveGold = 0;
+            gold = Math.max(0, gold - 60);
+            goldEl.textContent = gold;
+            localStorage.setItem("cephedeGold", gold);
+        }
+
+        if (player.score > highScore) {
+            highScore = player.score;
+            localStorage.setItem("cephedeHighScore", highScore);
+            highScoreEl.textContent = highScore;
+            startHighScoreEl.textContent = highScore;
+        }
+
+        screenTitle.textContent = "OYUN BİTTİ!";
+        screenScore.innerHTML = "Skorun: " + player.score + " | En Yüksek Skor: " + highScore;
+        startScreen.style.display = "flex";
+        showMenuPage('main', true);
+        return;
+    }
+
+    let isMoving = false;
+    let dx = 0; let dy = 0;
+
+    if (keys["w"] || keys["arrowup"]) dy -= 1;
+    if (keys["s"] || keys["arrowdown"]) dy += 1;
+    if (keys["a"] || keys["arrowleft"]) dx -= 1;
+    if (keys["d"] || keys["arrowright"]) dx += 1;
+
+    if (joystickActive) { dx = joystickVector.x; dy = joystickVector.y; }
+    if (viewMode === 'fps' && (dx !== 0 || dy !== 0)) {
+        const f = -dy, s = dx, ca = Math.cos(player.angle), sa = Math.sin(player.angle);
+        dx = f * ca - s * sa;
+        dy = f * sa + s * ca;
+    }
+
+    if (dx !== 0 || dy !== 0) {
+        isMoving = true;
+        const len = Math.hypot(dx, dy);
+        if (!joystickActive && len > 1) { dx /= len; dy /= len; }
+
+        let nextX = player.x + dx * player.speed;
+        let nextY = player.y + dy * player.speed;
+
+        nextX = Math.max(player.radius, Math.min(WORLD_W - player.radius, nextX));
+        nextY = Math.max(player.radius, Math.min(WORLD_H - player.radius, nextY));
+
+        if (!checkObstacleCollision(nextX, player.y, player.radius)) player.x = nextX;
+        if (!checkObstacleCollision(player.x, nextY, player.radius)) player.y = nextY;
+
+        playStepSound();
+    }
+
+    player.walkCycle = isMoving ? player.walkCycle + 0.2 : 0;
+
+    if (viewMode !== 'fps') {
+        if (joystickActive && (dx !== 0 || dy !== 0)) {
+            player.angle = Math.atan2(dy, dx);
+        } else {
+            player.angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+        }
+    }
+
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        const b = bullets[i];
+        b.x += b.vx; b.y += b.vy;
+
+        if (b.x < 0 || b.x > WORLD_W || b.y < 0 || b.y > WORLD_H) {
+            bullets.splice(i, 1);
+            continue;
+        }
+
+        let hitObs = false;
+        for (let obs of obstacles) {
+            if (obs.type === 'wall') {
+                if (b.x >= obs.x && b.x <= obs.x + obs.w && b.y >= obs.y && b.y <= obs.y + obs.h) { hitObs = true; break; }
+            } else if (obs.type === 'tree') {
+                if (Math.hypot(b.x - obs.x, b.y - obs.y) < obs.radius) { hitObs = true; break; }
+            }
+        }
+        if (hitObs) { bullets.splice(i, 1); continue; }
+
+        if (!b.isEnemy) {
+            let gone = false;
+            for (let j = enemies.length - 1; j >= 0; j--) {
+                const en = enemies[j];
+                if (Math.hypot(b.x - en.x, b.y - en.y) < b.radius + en.radius) {
+                    en.hp -= b.damage;
+                    playHitSound();
+                    bullets.splice(i, 1);
+                    gone = true;
+                    break;
+                }
+            }
+            // çok oyunculu: hasarı kurban kendi tarafında işler, burada sadece mermi kaybolur
+            if (!gone && mpActive && remote.active && remote.hp > 0 &&
+                Math.hypot(b.x - remote.x, b.y - remote.y) < b.radius + remote.radius) {
+                bullets.splice(i, 1);
+            }
+        } else {
+            if (Math.hypot(b.x - player.x, b.y - player.y) < b.radius + player.radius) {
+                player.hp -= b.damage;
+                healthEl.textContent = Math.max(0, player.hp);
+                playHitSound();
+                if (b.remote) mpSend({ t: 'h' });
+                bullets.splice(i, 1);
+            }
+        }
+    }
+
+    // RPG Füzesi İlerlemesi ve Patlaması
+    for (let i = rpgRockets.length - 1; i >= 0; i--) {
+        const r = rpgRockets[i];
+        const angle = Math.atan2(r.targetY - r.y, r.targetX - r.x);
+        r.x += Math.cos(angle) * r.speed;
+        r.y += Math.sin(angle) * r.speed;
+
+        // Hedefe ulaştı mı?
+        if (Math.hypot(r.targetX - r.x, r.targetY - r.y) < 15) {
+            explosions.push({ x: r.targetX, y: r.targetY, radius: 210, timer: 50 });
+            playRpgExplosionSound();
+            screenShakeTimer = 35;
+
+            // Etki alanı içerisindeki tüm düşmanlara 400 Hasar vur
+            enemies.forEach(en => {
+                if (Math.hypot(en.x - r.targetX, en.y - r.targetY) < 210 + en.radius) {
+                    en.hp -= 400 + dmgBonus('rpg');
+                }
+            });
+
+            if (mpActive) {
+                mpSend({ t: 'rpg_boom', x: r.targetX, y: r.targetY });
+                if (remote.active && Math.hypot(remote.x - r.targetX, remote.y - r.targetY) < 210 + remote.radius) {
+                    // Rakibe hasar sinyali
+                }
+            }
+
+            rpgRockets.splice(i, 1);
+        }
+    }
+
+    for (let i = coins.length - 1; i >= 0; i--) {
+        const c = coins[i];
+        if (Math.hypot(player.x - c.x, player.y - c.y) < player.radius + c.radius) {
+            gold += 1;
+            goldEl.textContent = gold;
+            localStorage.setItem("cephedeGold", gold);
+            playCoinSound();
+            coins.splice(i, 1);
+        }
+    }
+
+    for (let i = healthPacks.length - 1; i >= 0; i--) {
+        const hp = healthPacks[i];
+        if (Math.hypot(player.x - hp.x, player.y - hp.y) < player.radius + hp.radius) {
+            player.hp = Math.min(player.maxHp, player.hp + hp.healValue);
+            healthEl.textContent = player.hp;
+            playHealSound();
+            healthPacks.splice(i, 1);
+        }
+    }
+
+    enemies.forEach(en => {
+        en.angle = Math.atan2(player.y - en.y, player.x - en.x);
+        const dEn = Math.hypot(player.x - en.x, player.y - en.y);
+        const stopD = en.isMega ? en.radius * 0.6 : 0;
+        const cr = en.isMega ? 40 : en.radius;
+
+        if (dEn > stopD) {
+            let nextX = en.x + Math.cos(en.angle) * en.speed;
+            let nextY = en.y + Math.sin(en.angle) * en.speed;
+            if (!checkObstacleCollision(nextX, en.y, cr)) en.x = nextX;
+            if (!checkObstacleCollision(en.x, nextY, cr)) en.y = nextY;
+            en.walkCycle += 0.15;
+        }
+
+        if (en.isMega) {
+            // mega boss: yarı canda öfkelenir (daha hızlı, 5'li atış)
+            const enraged = en.hp < en.maxHp * 0.5;
+            if (enraged) en.speed = 1.7;
+            if (now - en.lastShot > (enraged ? 800 : 1000)) {
+                const base = Math.atan2(player.y - en.y, player.x - en.x);
+                const n = enraged ? 5 : 3;
+                for (let s = 0; s < n; s++) {
+                    const a = base + (s - (n - 1) / 2) * 0.22;
+                    bullets.push({
+                        x: en.x + Math.cos(base) * en.radius * 0.6, y: en.y + Math.sin(base) * en.radius * 0.6,
+                        vx: Math.cos(a) * 6.5, vy: Math.sin(a) * 6.5,
+                        radius: 14, color: "#ff1744", isEnemy: true, damage: 30
+                    });
+                }
+                en.lastShot = now;
+            }
+            if (dEn < en.radius + player.radius * 0.5 && now - (en.lastMelee || 0) > 800) {
+                en.lastMelee = now;
+                player.hp -= 35;
+                healthEl.textContent = Math.max(0, player.hp);
+                playHitSound();
+                screenShakeTimer = 15;
+            }
+        } else if (now - en.lastShot > (en.isBoss ? 1200 : 1500)) {
+            shootBullet(en.x, en.y, player.x, player.y, true, en.isBoss);
+            en.lastShot = now;
+        }
+    });
+
+    if (mpActive && mpConnected) mpSendState(now);
+}
+
+function onWavePromptChoice(choice) {
+    wavePromptScreen.style.display = "none";
+    if (choice === 'tamam') {
+        gold += pendingWaveGold;
+        goldEl.textContent = gold;
+        localStorage.setItem("cephedeGold", gold);
+        startScreen.style.display = "flex";
+        showMenuPage('main', true);
+        isGameStarted = false;
+    } else if (choice === 'devam') {
+        currentWave++;
+        document.getElementById('current-wave-display').textContent = currentWave;
+        enemiesToSpawnInWave = 8 + (currentWave * 4);
+        enemiesSpawnedCount = 0;
+        bullets = [];
+        enemies = [];
+    }
+}
+
+function gameLoop() {
+    lockGuard();
+    updateScope();
+    updateCamera();
+    updateMouseWorld();
+    update();
+    render3D();
+    requestAnimationFrame(gameLoop);
+}
+
+// =====================================================================
+//  NİŞANGAH (SCOPE) — sadece 1. şahıs • Glock / Desert Eagle / M-60
+//  Sağ tık (basılı) • N tuşu (klavye) • ekrandaki mavi N butonu (basılı)
+// =====================================================================
+let scopeMouse = false, scopeBtnHeld = false, scopeKey = false, scopeAmt = 0;
+const SCOPE_WEAPONS = { single: true, double: true, auto: true, rpg: true };
+const scopeBtn = document.getElementById('scope-btn');
+const scopeEl = document.createElement('div');
+scopeEl.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:6;display:none;opacity:0;' +
+    'background:radial-gradient(circle at center, rgba(0,0,0,0) 0, rgba(0,0,0,0) 27vmin, rgba(0,0,0,0.55) 28.5vmin, #000 30vmin);';
+scopeEl.innerHTML =
+    '<div style="position:absolute;left:50%;top:50%;width:57vmin;height:57vmin;margin:-28.5vmin 0 0 -28.5vmin;border-radius:50%;border:2px solid rgba(0,0,0,0.9);box-sizing:border-box"></div>' +
+    '<div style="position:absolute;left:50%;top:50%;width:56vmin;height:1px;margin-left:-28vmin;background:rgba(255,60,60,0.9)"></div>' +
+    '<div style="position:absolute;left:50%;top:50%;width:1px;height:56vmin;margin-top:-28vmin;background:rgba(255,60,60,0.9)"></div>' +
+    '<div style="position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#ff1744"></div>';
+document.body.appendChild(scopeEl);
+
+function scopeAllowed() {
+    return viewMode === 'fps' && !!SCOPE_WEAPONS[currentWeapon] && gameplayActive();
+}
+
+function updateScope() {
+    const allowed = scopeAllowed();
+    const want = allowed && (scopeMouse || scopeBtnHeld || scopeKey);
+    const target = want ? 1 : 0;
+    if (viewMode !== 'fps') {
+        scopeAmt = 0;
+    } else {
+        scopeAmt += (target - scopeAmt) * 0.3;
+        if (Math.abs(target - scopeAmt) < 0.01) scopeAmt = target;
+        const f = 78 - 40 * scopeAmt;
+        if (Math.abs(camera.fov - f) > 0.01) { camera.fov = f; camera.updateProjectionMatrix(); }
+    }
+    scopeEl.style.display = scopeAmt > 0.02 ? 'block' : 'none';
+    scopeEl.style.opacity = Math.min(1, scopeAmt * 1.2).toFixed(2);
+    if (scopeBtn) {
+        scopeBtn.style.opacity = allowed ? '1' : '0.25';
+        scopeBtn.classList.toggle('on', want);
+    }
+}
+
+if (scopeBtn) {
+    scopeBtn.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); scopeBtnHeld = true; }, { passive: false });
+    scopeBtn.addEventListener('touchend', e => { e.preventDefault(); scopeBtnHeld = false; });
+    scopeBtn.addEventListener('touchcancel', () => { scopeBtnHeld = false; });
+    scopeBtn.addEventListener('mousedown', e => { e.preventDefault(); scopeBtnHeld = true; });
+    window.addEventListener('mouseup', () => { scopeBtnHeld = false; });
+}
+window.addEventListener('blur', () => { scopeMouse = false; scopeBtnHeld = false; scopeKey = false; isFiring = false; });
+
+// =====================================================================
+//  ÇOK OYUNCULU 1v1 (PeerJS / WebRTC, birebir bağlantı)
+//  • Harita her maçta sistem (oda kurucusu) tarafından rastgele seçilir.
+//  • Her oyuncu kendi canını/konumunu yönetir; mermiler iki tarafa da gönderilir,
+//    isabeti vurulan taraf kendi ekranında hesaplar.
+// =====================================================================
+const MP_WEAPONS = {
+    single: { dmg: 22, rate: 250 },   // Glock
+    double: { dmg: 16, rate: 380 },   // Desert Eagle (iki mermi)
+    auto:   { dmg: 7,  rate: 90 },    // M-60
+    minigun: { dmg: 3, rate: 100 },   // Minigun (4 mermi / atış)
+    grenade: { dmg: 60, rate: 200 },  // Bomba (patlama hasarı)
+    rpg:     { dmg: 120, rate: 3000 } // RPG
+};
+const MP_GRENADE_COOLDOWN = 2000;
+const MAP_NAMES = { park: 'Kentleşmiş Park', kanal: 'Kanalizasyon', sehir: 'Şehir İçi' };
+const remote = { active: false, x: 0, y: 0, tx: 0, ty: 0, angle: 0, tangle: 0, hp: 100, maxHp: 100, gold: 0, char: 'sevket', w: 'single', radius: 18, lastShot: 0, walk: 0, init: false };
+
+let mpPeer = null, mpConn = null, mpConnected = false, mpRole = null, mpRoomCode = '';
+let mpResult = null, mpLastSend = 0;
+
+const mpToastEl = document.createElement('div');
+mpToastEl.style.cssText = 'position:fixed;left:50%;top:70px;transform:translateX(-50%);background:rgba(0,0,0,0.75);color:#fff;padding:8px 16px;border-radius:10px;font-weight:bold;font-size:14px;z-index:12;display:none;pointer-events:none;text-align:center;max-width:90%;';
+document.body.appendChild(mpToastEl);
+let mpToastTimer = null;
+function mpToast(msg) {
+    mpToastEl.textContent = msg;
+    mpToastEl.style.display = 'block';
+    clearTimeout(mpToastTimer);
+    mpToastTimer = setTimeout(() => { mpToastEl.style.display = 'none'; }, 4000);
+}
+
+function mpSetStatus(msg) {
+    const el = document.getElementById('mp-status');
+    if (el) el.textContent = msg;
+}
+
+function mpSend(obj) {
+    try { if (mpConn && mpConn.open) mpConn.send(obj); } catch (e) {}
+}
+
+function mpLibOk() {
+    if (typeof Peer === 'undefined') {
+        mpSetStatus('Çok oyunculu bağlantı kütüphanesi (PeerJS) yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.');
+        return false;
+    }
+    return true;
+}
+
+function refreshWeaponButtons() {
+    const defs = [['single', 'Glock', 0], ['double', 'Desert Eagle', 30], ['auto', 'M-60', 50], ['minigun', 'Minigun', 100], ['grenade', 'Bomba', 70], ['rpg', 'RPG', 250]];
+    defs.forEach(d => {
+        const b = document.getElementById('btn-' + d[0]);
+        if (!b) return;
+        if (mpActive) {
+            b.style.display = MP_WEAPONS[d[0]] ? '' : 'none';
+            b.textContent = d[1];
+            b.classList.remove('locked');
+        } else {
+            b.style.display = '';
+            const u = !!unlockedWeapons[d[0]];
+            b.textContent = u ? d[1] : (d[1] + ' (' + d[2] + '🪙)');
+            b.classList.toggle('locked', !u);
+        }
+    });
+    const gj = document.getElementById('grenade-joystick-container');
+    if (gj) gj.style.display = (mpActive || unlockedWeapons.grenade || unlockedWeapons.rpg) ? 'flex' : 'none';
+}
+
+function mpApplyUI() {
+    document.querySelectorAll('.sp-only').forEach(el => { el.style.display = mpActive ? 'none' : ''; });
+    document.getElementById('opp-stat').style.display = mpActive ? 'inline' : 'none';
+    document.getElementById('btn-pause').style.display = mpActive ? 'none' : '';
+    document.getElementById('btn-leave').style.display = (mpActive && isGameStarted) ? 'inline-block' : 'none';
+    refreshWeaponButtons();
+}
+
+function mpRestoreSpWeapon() {
+    const w = unlockedWeapons[currentWeapon] ? currentWeapon : 'single';
+    selectWeapon(w);
+}
+
+function mpRenderPanel() {
+    mpRenderScoreboard();
+    const panel = document.getElementById('mp-panel');
+    if (!panel) return;
+    panel.style.display = mpActive ? 'flex' : 'none';
+    if (!mpActive) return;
+    const busy = !!mpPeer;
+    document.getElementById('mp-menu').style.display = busy ? 'none' : 'flex';
+    document.getElementById('mp-room').style.display = (mpRole === 'host' && busy && !mpConnected && mpRoomCode) ? 'block' : 'none';
+    document.getElementById('mp-actions').style.display = busy ? 'flex' : 'none';
+    document.getElementById('mp-rematch-btn').style.display = (mpConnected && mpRole === 'host' && (!isGameStarted || isGameOver)) ? 'inline-block' : 'none';
+    document.getElementById('mp-leave-btn').textContent = mpConnected ? '✖ Ayrıl' : '✖ İptal';
+}
+
+function mpRandCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s = '';
+    for (let i = 0; i < 5; i++) s += chars[Math.floor(Math.random() * chars.length)];
+    return s;
+}
+
+function mpCleanup() {
+    const c = mpConn, p = mpPeer;
+    mpConn = null; mpPeer = null; mpConnected = false; mpRoomCode = '';
+    try { if (c) c.close(); } catch (e) {}
+    try { if (p) p.destroy(); } catch (e) {}
+}
+
+function mpFail(err) {
+    mpSetStatus('Bağlantı hatası' + (err && err.type ? ' (' + err.type + ')' : '') + '. Tekrar dene.');
+    mpCleanup();
+    mpRenderPanel();
+}
+
+function mpHost() {
+    initAudio();
+    if (!mpLibOk()) return;
+    mpCleanup();
+    mpRole = 'host';
+    mpHostTry(0);
+}
+
+function mpHostTry(n) {
+    const code = mpRandCode();
+    const p = new Peer('cephede-' + code);
+    mpPeer = p;
+    mpSetStatus('Sunucuya bağlanılıyor...');
+    mpRenderPanel();
+    p.on('open', () => {
+        if (p !== mpPeer) return;
+        mpRoomCode = code;
+        document.getElementById('mp-room-code').textContent = code;
+        mpSetStatus('Rakip bekleniyor... Kodu arkadaşınla paylaş.');
+        mpRenderPanel();
+    });
+    p.on('connection', c => {
+        if (p !== mpPeer) return;
+        if (mpConn) { c.on('open', () => { try { c.close(); } catch (e) {} }); return; }
+        mpAttach(c);
+    });
+    p.on('error', err => {
+        if (p !== mpPeer) return;
+        if (err && err.type === 'unavailable-id' && n < 3) {
+            mpPeer = null;
+            try { p.destroy(); } catch (e) {}
+            mpHostTry(n + 1);
+            return;
+        }
+        mpFail(err);
+    });
+}
+
+function mpJoin() {
+    initAudio();
+    const input = document.getElementById('mp-code-input');
+    const code = (input.value || '').trim().toUpperCase();
+    if (code.length < 4) { mpSetStatus('Lütfen oda kodunu gir.'); return; }
+    if (!mpLibOk()) return;
+    mpCleanup();
+    mpRole = 'guest';
+    const p = new Peer();
+    mpPeer = p;
+    mpSetStatus('Odaya bağlanılıyor...');
+    mpRenderPanel();
+    p.on('open', () => {
+        if (p !== mpPeer) return;
+        const c = p.connect('cephede-' + code, { reliable: true, serialization: 'json' });
+        mpAttach(c);
+    });
+    p.on('error', err => {
+        if (p !== mpPeer) return;
+        if (err && err.type === 'peer-unavailable') {
+            mpCleanup();
+            mpSetStatus('Oda bulunamadı. Kodu kontrol et.');
+            mpRenderPanel();
+        } else mpFail(err);
+    });
+}
+
+function mpAttach(c) {
+    mpConn = c;
+    const onOpen = () => {
+        if (c !== mpConn) return;
+        mpConnected = true;
+        mpSetStatus('Rakip bağlandı!');
+        mpSendProfile();
+        mpRenderPanel();
+        if (mpRole === 'host') mpHostStartMatch();
+    };
+    if (c.open) onOpen(); else c.on('open', onOpen);
+    c.on('data', d => { if (c === mpConn) mpOnData(d); });
+    c.on('close', () => { if (c === mpConn) mpOnClose(); });
+    c.on('error', () => { if (c === mpConn) mpOnClose(); });
+}
+
+function mpHostStartMatch() {
+    if (mpRole !== 'host' || !mpConnected) return;
+    initAudio();
+    const maps = ['park', 'kanal', 'sehir'];
+    const m = maps[Math.floor(Math.random() * maps.length)];
+    mpSend({ t: 'start', map: m });
+    mpBeginMatch(m);
+}
+
+let mpRewarded = false;
+const MP_WIN_GOLD = 60;
+function mpBeginMatch(map) {
+    mpResult = null;
+    mpRewarded = false;
+    mpSendProfile();
+    setGameMap(map);          // haritayı kurar (çok oyunculuda araçlar kapalı)
+    startGame();              // başlangıç ekranını kapatır, resetGame() ile konumlandırır
+    mpApplyUI();
+    mpRenderPanel();
+    mpToast('Harita: ' + (MAP_NAMES[map] || map) + ' • fareyle bakmak için ekrana tıkla');
+}
+
+function mpOnData(d) {
+    if (!d || !d.t) return;
+    switch (d.t) {
+        case 'start':
+            if (mpRole === 'guest') mpBeginMatch(d.map);
+            break;
+        case 'p':
+            mpApplyRemoteProfile(d);
+            break;
+        case 's':
+            remote.tx = d.x; remote.ty = d.y; remote.tangle = d.a;
+            remote.hp = d.hp; remote.w = d.w;
+            if (!remote.init) { remote.x = d.x; remote.y = d.y; remote.angle = d.a; remote.init = true; }
+            document.getElementById('opp-hp').textContent = Math.max(0, Math.round(d.hp));
+            break;
+        case 'shot':
+            if (!isGameStarted || isGameOver) break;
+            (d.b || []).forEach(o => {
+                bullets.push({ x: o.x, y: o.y, vx: o.vx, vy: o.vy, radius: o.r, color: '#ff7043', isEnemy: true, remote: true, damage: d.d });
+            });
+            remote.lastShot = Date.now();
+            if (d.w) remote.w = d.w;
+            playShootSound();
+            break;
+        case 'rpg_fire':
+            if (!isGameStarted || isGameOver) break;
+            playRpgWhooshSound();
+            rpgRockets.push({
+                startX: d.sx, startY: d.sy,
+                x: d.sx, y: d.sy,
+                targetX: d.tx, targetY: d.ty,
+                speed: 12
+            });
+            remote.lastShot = Date.now();
+            remote.w = 'rpg';
+            break;
+        case 'h':
+            playHitSound();
+            break;
+        case 'boom':
+            if (!isGameStarted || isGameOver) break;
+            explosions.push({ x: d.x, y: d.y, radius: 70, timer: 40 });
+            playExplosionSound();
+            screenShakeTimer = 20;
+            remote.lastShot = Date.now();
+            if (Math.hypot(player.x - d.x, player.y - d.y) < 70 + player.radius) {
+                player.hp -= MP_WEAPONS.grenade.dmg;
+                healthEl.textContent = Math.max(0, player.hp);
+                playHitSound();
+                mpSend({ t: 'h' });
+            }
+            break;
+        case 'rpg_boom':
+            if (!isGameStarted || isGameOver) break;
+            explosions.push({ x: d.x, y: d.y, radius: 210, timer: 50 });
+            playRpgExplosionSound();
+            screenShakeTimer = 35;
+            remote.lastShot = Date.now();
+            if (Math.hypot(player.x - d.x, player.y - d.y) < 210 + player.radius) {
+                player.hp -= MP_WEAPONS.rpg.dmg;
+                healthEl.textContent = Math.max(0, player.hp);
+                playHitSound();
+                mpSend({ t: 'h' });
+            }
+            break;
+        case 'dead':
+            remote.hp = 0;
+            document.getElementById('opp-hp').textContent = 0;
+            if (mpResult === 'lose') {
+                mpResult = 'draw';
+            } else if (!mpResult) {
+                mpResult = 'win';
+                isGameOver = true;
+                setTimeout(mpDisplayResult, 900);
+            }
+            break;
+    }
+}
+
+function mpSendState(now) {
+    if (now - mpLastSend < 50) return;
+    mpLastSend = now;
+    mpSend({ t: 's', x: +player.x.toFixed(1), y: +player.y.toFixed(1), a: +player.angle.toFixed(3), hp: player.hp, w: currentWeapon });
+}
+
+function mpOnLocalDeath() {
+    if (mpResult) return;
+    mpResult = 'lose';
+    mpSend({ t: 'dead' });
+    setTimeout(mpDisplayResult, 900);
+}
+
+function mpDisplayResult() {
+    if (!mpActive || !mpResult || !isGameOver) return;
+    const T = { win: 'KAZANDIN! 🏆', lose: 'KAYBETTİN!', draw: 'BERABERE!', left: 'RAKİP AYRILDI — KAZANDIN! 🏆' };
+    screenTitle.textContent = T[mpResult] || 'MAÇ BİTTİ';
+    let winMsg = '';
+    if ((mpResult === 'win' || mpResult === 'left') && !mpRewarded) {
+        mpRewarded = true;
+        gold += MP_WIN_GOLD;
+        saveGold();
+        mpSendProfile();
+        mpRenderScoreboard();
+        winMsg = ' +' + MP_WIN_GOLD + ' 🪙 kazandın! ';
+    }
+    screenScore.textContent = winMsg + (mpConnected ? 'Bağlantı açık — yeni maçı oda kurucusu başlatır (harita rastgele).' : 'Bağlantı kapandı.');
+    startScreen.style.display = 'flex';
+    showMenuPage('mp', true);
+    mpApplyUI();
+    mpRenderPanel();
+}
+
+function mpOnClose() {
+    const during = isGameStarted && !isGameOver;
+    const c = mpConn, p = mpPeer;
+    mpConn = null; mpPeer = null; mpConnected = false; mpRoomCode = '';
+    try { if (c) c.close(); } catch (e) {}
+    try { if (p) p.destroy(); } catch (e) {}
+    mpSetStatus('Rakip ayrıldı. Yeni bir oda kurabilir veya katılabilirsin.');
+    if (during) {
+        mpResult = 'left';
+        isGameOver = true;
+        mpDisplayResult();
+    }
+    mpRenderPanel();
+}
+
+function mpLeave() {
+    mpCleanup();
+    mpResult = null;
+    isGameStarted = false;
+    isGameOver = false;
+    remote.active = false;
+    remote.init = false;
+    bullets = [];
+    rpgRockets = [];
+    startScreen.style.display = 'flex';
+    screenTitle.textContent = 'Cephede tek başına V1.3';
+    screenScore.textContent = 'Arkadaşınla 1v1 savaş • harita rastgele seçilir';
+    mpSetStatus('Oda kur ve kodu arkadaşına gönder ya da gelen kodla katıl.');
+    showMenuPage('mp', true);
+    mpApplyUI();
+    mpRenderPanel();
+}
+
+function updateRemote3D() {
+    const p = remote3d;
+    const show = mpActive && isGameStarted && remote.active;
+    p.group.visible = show;
+    if (!show) return;
+
+    const moving = Math.hypot(remote.tx - remote.x, remote.ty - remote.y) > 0.8;
+    remote.x += (remote.tx - remote.x) * 0.3;
+    remote.y += (remote.ty - remote.y) * 0.3;
+    const da = Math.atan2(Math.sin(remote.tangle - remote.angle), Math.cos(remote.tangle - remote.angle));
+    remote.angle += da * 0.3;
+    remote.walk = moving ? remote.walk + 0.2 : 0;
+
+    const dead = remote.hp <= 0;
+    p.group.position.set(remote.x, 0, remote.y);
+    p.model.rotation.y = -remote.angle;
+    p.model.rotation.z = dead ? Math.PI / 2 : 0;
+    p.model.position.y = dead ? 12 : Math.abs(Math.sin(remote.walk)) * 1.2;
+    animateLegs(p, remote.walk);
+    for (const k in p.weapons) p.weapons[k].visible = (k === remote.w);
+    p.flash.visible = !dead && (Date.now() - remote.lastShot) < 55;
+    setBar(p.bar, remote.hp / (remote.maxHp || 100));
+    p.bar.grp.quaternion.copy(camera.quaternion);
+}
+
+applyCharacter();
+setHumanColor(remote3d, remoteColorFor('sevket'));
+refreshGoldLive();
+
+mpApplyUI();
+showMenuPage('main');
+
+gameLoop();
+</script>
+
+</body>
+</html>

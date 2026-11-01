@@ -1,0 +1,9 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.cephede.oyun
+productName: Cephede Tek Başına
+win:
+  target: portable
+files: []
+electronVersion: 45.2.1
